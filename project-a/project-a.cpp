@@ -4,7 +4,7 @@
 #include <cmath>
 #include <ctime>
 
-#define numberOfSteps 800									//number of time steps
+#define numberOfSteps 5000									//number of time steps
 #define h 0.005														//step size
 #define g 9.81														//acceleration due to gravity
 
@@ -20,7 +20,7 @@ int main()
 	double gamma = 200.0;												//damping coefficient
 	double beta = gamma/(m* sqrt( g*l ));				//matrix constant
 
-	double initial_theta = 0.1;									//angle from vert (starting angle)
+	double initial_theta = 0.3;									//angle from vert (starting angle)
 	double initial_w = 0;												//rate of change of angle from vert (starting at rest)
 	
 	double euler_theta_n, euler_w_n;						//used to keep track of current values during update calculations
@@ -57,7 +57,7 @@ int main()
 		//update euler_w
 		euler_w[i+1] = ( (1-h) * euler_w[i] ) - ( h * beta * euler_theta[i] );
 
-		/************** LEAPFROG METHOD **************/
+		/************** LEAPFROG METHOD ************** /
 
 		if(i==0) //we need to use the euler method to give us some initial values
 		{
