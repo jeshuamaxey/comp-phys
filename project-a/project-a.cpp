@@ -4,9 +4,9 @@
 #include <cmath>
 #include <ctime>
 
-#define simulatedTime 10												//simulated time (seconds)
+#define simulatedTime 30											//simulated time (seconds)
 #define h 0.005																//step size
-//#define numberOfSteps  int(simulatedTime / h)	//
+#define numberOfSteps  int(simulatedTime / h)	//used for sizing arrays
 #define g 9.81																//acceleration due to gravity
 #define pi atan(1.0)													//mutha fuckin pi man
 
@@ -16,7 +16,6 @@ using namespace std;
 
 int main()
 {
-	int numberOfSteps = int(simulatedTime/h);//
 	double t = 0;																//time (needed?)
 	double l = 9.81;														//length of pendulem in metres
 	double m = 1.0;															//mass of pendulum in kg
@@ -34,7 +33,10 @@ int main()
 	double leapfrog_theta [numberOfSteps];			//stores all theta values
 	double leapfrog_w [numberOfSteps];					//stores all w values
 
+	double k_1, k_2, k_3, k_4;
+
 	std::cout.precision(1);											//sets the number of decimal places time is outputted to
+																							//see: http://www.cplusplus.com/reference/ios/scientific/
 
 	//set initial values
 	euler_theta[0] = initial_theta;
@@ -70,8 +72,7 @@ int main()
 		//update euler_theta
 		euler_theta[i+1] =  ( h*euler_w[i] ) + euler_theta[i];
 		//update euler_w
-		//euler_w[i+1] = ( (1-h) * euler_w[i] ) - ( h * beta * euler_theta[i] );		//bad maths
-		euler_w[i+1] = -h*euler_theta[i] + ( 1 - h*beta )*euler_w[i];						//good maths
+		euler_w[i+1] = -h*euler_theta[i] + ( 1 - h*beta )*euler_w[i];
 
 		/************** LEAPFROG METHOD **************/
 
@@ -89,6 +90,15 @@ int main()
 			//update leapfrog_w
 			leapfrog_w[i+1] = leapfrog_w[i-1] - 2.0*h*( leapfrog_theta[i] + ( beta*leapfrog_w[i] ) );
 		}
+
+		/************** RK4 METHOD ************** /
+
+		k_1 = h*f_w();
+		k_2 = h*f_w();
+		k_3 = h*f_w();
+		k_4 = h*f_w();
+
+		y[i+1] = y[i] + (1.0/6.0)*(k_1 + 2*k_2 + 2*k_3 + k_4);
 
 		/************** PROGRESS METER **************/
 		cout << std::fixed<< "\r"<< (float(i)/numberOfSteps)*100 << "\%" << flush;
