@@ -1,5 +1,5 @@
 # Computational Physics
-=======================
+----------------------
 
 This repo contains all the code I porduced during the Computational Physics course at Imperial College London. Each project has its own dedicated directory. The data directory under each of these cannot be relied upon to stay constant as I'm constantly re-running the code with different parameters.
 
