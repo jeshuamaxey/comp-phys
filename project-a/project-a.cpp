@@ -4,7 +4,7 @@
 #include <cmath>
 #include <ctime>
 
-#define simulatedTime 2.0											//simulated time (seconds)
+#define simulatedTime 6.0											//simulated time (seconds)
 #define h 0.01																//step size
 #define numberOfSteps  int(simulatedTime / h)	//used for sizing arrays
 #define g 9.81																//acceleration due to gravity
@@ -36,6 +36,32 @@ int main()
 	done();
 	return 0;
 }
+
+/*
+                                      
+          88                         88             
+          ""                         88             
+                                     88             
+,adPPYba, 88 8b,dPPYba,   ,adPPYb,d8 88  ,adPPYba,  
+I8[    "" 88 88P'   `"8a a8"    `Y88 88 a8P_____88  
+ `"Y8ba,  88 88       88 8b       88 88 8PP"""""""  
+aa    ]8I 88 88       88 "8a,   ,d88 88 "8b,   ,aa  
+`"YbbdP"' 88 88       88  `"YbbdP"Y8 88  `"Ybbd8"'  
+                          aa,    ,88                
+                           "Y8bbdP"                 
+                                    
+                                    
+                                    
+                                    
+8b,dPPYba,   ,adPPYba, 8b,dPPYba,   
+88P'    "8a a8P_____88 88P'   `"8a  
+88       d8 8PP""""""" 88       88  
+88b,   ,a8" "8b,   ,aa 88       88  
+88`YbbdP"'   `"Ybbd8"' 88       88  
+88                                  
+88
+
+*/
 
 //simulates the motion of a single pendulum
 //using multiple finite difference methods
@@ -236,6 +262,29 @@ void single_pendulum()
 	}
 } //end single_pendulum()
 
+/*
+                                                      
+         88                         88          88             
+         88                         88          88             
+         88                         88          88             
+ ,adPPYb,88  ,adPPYba,  88       88 88,dPPYba,  88  ,adPPYba,  
+a8"    `Y88 a8"     "8a 88       88 88P'    "8a 88 a8P_____88  
+8b       88 8b       d8 88       88 88       d8 88 8PP"""""""  
+"8a,   ,d88 "8a,   ,a8" "8a,   ,a88 88b,   ,a8" 88 "8b,   ,aa  
+ `"8bbdP"Y8  `"YbbdP"'   `"YbbdP'Y8 8Y"Ybbd8"'  88  `"Ybbd8"'  
+                                                               
+                                                               
+                                    
+8b,dPPYba,   ,adPPYba, 8b,dPPYba,   
+88P'    "8a a8P_____88 88P'   `"8a  
+88       d8 8PP""""""" 88       88  
+88b,   ,a8" "8b,   ,aa 88       88  
+88`YbbdP"'   `"Ybbd8"' 88       88  
+88                                  
+88   
+
+*/
+
 //simulates the motion of a double pendulum
 //using the RK4 finite difference method
 void double_pendulum()
@@ -246,14 +295,14 @@ void double_pendulum()
 	double l = 9.81;														//length of pendulem in metres
 	double m = 1.0;															//mass of 1st pendulum in kg
 	double M = 1.0;															//mass of 2nd pendulum in kg
-	double gamma = 1.0;													//damping coefficient
+	double gamma = 0.0;													//damping coefficient
 
 	double beta = gamma/(m* sqrt( g*l ));				//matrix constant
 	double G = beta;
 	double R = M/m;															//matrix constant
 
-	double initial_theta = 0.2;									//angle from vert for pendulum 1 (starting angle)
-	double initial_psi = 0.2;										//angle from vert for pendulum 2 (starting angle)
+	double initial_theta = 0.1;									//angle from vert for pendulum 1 (starting angle)
+	double initial_psi = 0.0;										//angle from vert for pendulum 2 (starting angle)
 	double initial_w = 0.0;											//rate of change of angle from vert for pendulum 1 (starting at rest)
 	double initial_v = 0.0;											//rate of change of angle from vert for pendulum 2 (starting at rest)
 
@@ -362,6 +411,21 @@ void double_pendulum()
 	}
 } //end double_pendulum
 
+/*
+
+                                                                       
+88                     88                                              
+88                     88                                              
+88                     88                                              
+88,dPPYba,   ,adPPYba, 88 8b,dPPYba,   ,adPPYba, 8b,dPPYba, ,adPPYba,  
+88P'    "8a a8P_____88 88 88P'    "8a a8P_____88 88P'   "Y8 I8[    ""  
+88       88 8PP""""""" 88 88       d8 8PP""""""" 88          `"Y8ba,   
+88       88 "8b,   ,aa 88 88b,   ,a8" "8b,   ,aa 88         aa    ]8I  
+88       88  `"Ybbd8"' 88 88`YbbdP"'   `"Ybbd8"' 88         `"YbbdP"'  
+                          88                                           
+                          88 
+*/
+
 //calculate kinetic energy
 double calculateKineticEnergy(double m, double l, double theta, double w)
 {
@@ -380,7 +444,7 @@ void updateProgress(int i, char *name)
 		cout << std::fixed << "\r"<< "Currently running " << name << " - " << (float(i)/numberOfSteps)*100 << "\%" << flush;
 }
 
-//
+//displays done message to terminal
 void done()
 {
 	std::cout << "\r"<< "100\% - all done. Simulated time elapsed: " << simulatedTime << "s\n" << std::flush;
