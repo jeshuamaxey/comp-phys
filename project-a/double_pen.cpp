@@ -112,40 +112,6 @@ void double_pendulum()
 		//end output for this iteration
 		double_pen << "\n";
 
-		/************** OLD RK4 METHOD ************** /
-
-		//generate the k values for theta
-		k_1 = h * ( rk4_w[i] );
-		k_2 = h * ( rk4_w[i] + 0.5*k_1 );
-		k_3 = h * ( rk4_w[i] + 0.5*k_2 );
-		k_4 = h * ( rk4_w[i] + k_3);
-		//generate next value of theta
-		rk4_theta[i+1] = rk4_theta[i] + (1.0/6.0)*(k_1 + 2*k_2 + 2*k_3 + k_4);		//DONE
-
-		//generate the k values for psi
-		k_1 = h * ( rk4_v[i] );
-		k_2 = h * ( rk4_v[i] + 0.5*k_1 );
-		k_3 = h * ( rk4_v[i] + 0.5*k_2 );
-		k_4 = h * ( rk4_v[i] + k_3);
-		//generate next value of psi
-		rk4_theta[i+1] = rk4_theta[i] + (1.0/6.0)*(k_1 + 2*k_2 + 2*k_3 + k_4);		//DONE
-
-		//generate the k values for w
-		k_1 = h * ( -1*(R+1)*rk4_theta[i] 					+ R*rk4_psi[i] 						- beta*rk4_w[i] );
-		k_2 = h * ( -1*(R+1)*(rk4_theta[i] + 0.5*h) + R*(rk4_psi[i] + 0.5*h)  - beta*(rk4_w[i] + 0.5*h) );
-		k_3 = h * ( -1*(R+1)*(rk4_theta[i] + 0.5*h) + R*(rk4_psi[i] + 0.5*h)  - beta*(rk4_w[i] + 0.5*h) );
-		k_4 = h * ( -1*(R+1)*(rk4_theta[i] + h) 		+ R*(rk4_psi[i] + h) 			- beta*(rk4_w[i] + h) );
-		//generate next value of w
-		rk4_w[i+1] = rk4_w[i] + (1.0/6.0)*(k_1 + 2*k_2 + 2*k_3 + k_4);						//DONE
-		
-		//generate the k values for v
-		k_1 = h * ( (R+1)*rk4_theta[i] 						- (R+1)*rk4_psi[i] 					 + beta*(1- (1/R))*rk4_w[i] 					- (beta/R)*rk4_v[i] );
-		k_2 = h * ( (R+1)*(rk4_theta[i] + 0.5*h)  - (R+1)*(rk4_psi[i] + 0.5*h) + beta*(1- (1/R))*(rk4_w[i] + 0.5*h) - (beta/R)*(rk4_v[i] + 0.5*k_1) );
-		k_3 = h * ( (R+1)*(rk4_theta[i] + 0.5*h)  - (R+1)*(rk4_psi[i] + 0.5*h) + beta*(1- (1/R))*(rk4_w[i] + 0.5*h) - (beta/R)*(rk4_v[i] + 0.5*k_2) );
-		k_4 = h * ( (R+1)*(rk4_theta[i] + h) 			- (R+1)*(rk4_psi[i] + h) 		 + beta*(1- (1/R))*(rk4_w[i] + h) 		- (beta/R)*(rk4_v[i] + k_3) );
-		//generate next value of v
-		rk4_w[i+1] = rk4_w[i] + (1.0/6.0)*(k_1 + 2*k_2 + 2*k_3 + k_4);						//DONE
-
 		/************** NEW RK4 METHOD **************/
 
 		k1[0] = h * rk4_w[i];
