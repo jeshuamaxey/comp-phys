@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <math.h>
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -20,23 +21,25 @@ using namespace std;
 void initFile(ostream&, string);
 string makePositionHeading(string);
 string makeEnergyHeading(string);
-
-void setInitialValues();
-
-//single pendulum functions
-void single_pendulum();
-
-void updateEnergies(int);
-
 void outputPositionToFile(ostream&, double, double);
 void outputEnergyToFile(ostream&, double, double, double);
 
+void setInitialValues();
+
+void single_pendulum();
+
+void updateEnergies(int);
 void updateEuler(int);
 void updateLeapfrog(int);
 void updateRK4(int);
 
 double calculateKineticEnergy(double m, double l, double theta, double w);
 double calculatePotentialEnergy(double m, double l, double theta, double w);
+
+void eulerStabilityTest();
+void stabilityTest();
+string isStable(double, double);
+void calculateAnalyticalSolution();
 
 //helper functions
 void updateProgress(int);
@@ -47,6 +50,8 @@ int main()
 {
 	setInitialValues();
 	single_pendulum();
+	stabilityTest();
+	eulerStabilityTest();
 	done();
 	return 0;
 }
@@ -56,7 +61,7 @@ int main()
 double t = 0;																//time
 double l = 9.81;														//length of pendulem in metres
 double m = 1.0;															//mass of pendulum in kg
-double damping_constant = 1.0;													//damping coefficient
+double damping_constant = 0.0;													//damping coefficient
 double beta = damping_constant/(m* sqrt( g*l ));				//matrix constant
 
 //initial conditions
@@ -85,31 +90,12 @@ double rk4_T [numberOfSteps];								//stores all T values
 double rk4_U [numberOfSteps];								//stores all U values
 double k_1, k_2, k_3, k_4;
 
+//analytical solution & stabiliy testvars
+double anal_theta[numberOfSteps];
+double anal_w[numberOfSteps];
+double err_theta[numberOfSteps];
+
 /***************************************************************/
-
-/*
-                                      
-          88                         88             
-          ""                         88             
-                                     88             
-,adPPYba, 88 8b,dPPYba,   ,adPPYb,d8 88  ,adPPYba,  
-I8[    "" 88 88P'   `"8a a8"    `Y88 88 a8P_____88  
- `"Y8ba,  88 88       88 8b       88 88 8PP"""""""  
-aa    ]8I 88 88       88 "8a,   ,d88 88 "8b,   ,aa  
-`"YbbdP"' 88 88       88  `"YbbdP"Y8 88  `"Ybbd8"'  
-                          aa,    ,88                
-                           "Y8bbdP"                 
-                                                        
-                                    
-8b,dPPYba,   ,adPPYba, 8b,dPPYba,   
-88P'    "8a a8P_____88 88P'   `"8a  
-88       d8 8PP""""""" 88       88  
-88b,   ,a8" "8b,   ,aa 88       88  
-88`YbbdP"'   `"Ybbd8"' 88       88  
-88                                  
-88
-
-*/
 
 void initFile(ostream& file, string processName)
 {
@@ -155,6 +141,21 @@ void setInitialValues()
 	rk4_theta[0] = initial_theta;
 	rk4_w[0] = initial_w;
 }
+
+/*
+                                      
+          88                         88                                                   
+          ""                         88                                                   
+                                     88                                                   
+,adPPYba, 88 8b,dPPYba,   ,adPPYb,d8 88  ,adPPYba,    8b,dPPYba,   ,adPPYba, 8b,dPPYba,   
+I8[    "" 88 88P'   `"8a a8"    `Y88 88 a8P_____88    88P'    "8a a8P_____88 88P'   `"8a  
+ `"Y8ba,  88 88       88 8b       88 88 8PP"""""""    88       d8 8PP""""""" 88       88  
+aa    ]8I 88 88       88 "8a,   ,d88 88 "8b,   ,aa    88b,   ,a8" "8b,   ,aa 88       88  
+`"YbbdP"' 88 88       88  `"YbbdP"Y8 88  `"Ybbd8"'    88`YbbdP"'   `"Ybbd8"' 88       88
+                          aa,    ,88                  88
+                           "Y8bbdP"                   88
+
+*/
 
 //simulates the motion of a single pendulum
 //using multiple finite difference methods
@@ -338,6 +339,68 @@ void updateRK4(int i)
 	k_4 = -1*h * ( rk4_theta[i]+h + beta*(rk4_w[i] + k_3) );
 
 	rk4_w[i+1] = rk4_w[i] + (1.0/6.0)*(k_1 + 2*k_2 + 2*k_3 + k_4);
+}
+
+void stabilityTest() {
+	calculateAnalyticalSolution();
+	
+	double anal_E_initial	= calculateKineticEnergy(m, l, anal_theta[0], anal_w[0]);
+	double anal_E_final		= calculateKineticEnergy(m, l, anal_theta[numberOfSteps-1], anal_w[numberOfSteps-1]);
+
+	string euler_stable			= isStable(euler_E[0], euler_E[numberOfSteps-1]);
+	string leapfrog_stable	= isStable(leapfrog_E[0], leapfrog_E[numberOfSteps-1]);
+	string rk4_stable				= isStable(rk4_E[0], rk4_E[numberOfSteps-1]);
+
+	ofstream stabilityTestLog("data/stability_tests.csv");
+	stabilityTestLog << "Method,Initial Energy,Final Energy,Stable?\n" ;
+
+	stabilityTestLog << "Euler," 		<< euler_E[0]			<< "," << euler_E[numberOfSteps-1]		<< "," << euler_stable		<< "\n";
+	stabilityTestLog << "Leapfrog,"	<< leapfrog_E[0]	<< "," << leapfrog_E[numberOfSteps-1]	<< "," << leapfrog_stable	<< "\n";
+	stabilityTestLog << "RK4,"			<< rk4_E[0]				<< "," << rk4_E[numberOfSteps-1]			<< "," << rk4_stable			<< "\n";
+}
+
+string isStable(double E_i, double E_f) {
+	if(E_f > E_i)
+	{
+		return "stable";
+	}
+	else
+	{
+		return "unstable";
+	}
+}
+
+void eulerStabilityTest()
+{
+	ofstream stabilityTestLog("data/euler_stability_test.csv");
+	calculateAnalyticalSolution();
+	stabilityTestLog << "time,euler_theta,anal_theta,g,stable?\n" ;
+	double g_stab = 0.0;
+	for (int i = 0; i < numberOfSteps; ++i)
+	{
+		err_theta[i] = euler_theta[i] - anal_theta[i];
+		if(i != 0)
+		{
+			g_stab = abs(err_theta[i]/err_theta[i-1]);
+			g_stab = floorf(g_stab * 10000 + 0.5) / 10000; //crude rounding method
+		}
+		if(g_stab<1.0)
+		{
+			stabilityTestLog << i*h << "," << euler_theta[i] << "," << anal_theta[i] << "," << g_stab << "," << "HELL YES!\n";
+		}
+		else
+		{
+			stabilityTestLog << i*h << "," << euler_theta[i] << "," << anal_theta[i] << "," << g_stab << "," << "NOPE\n";
+		}
+	}
+}
+
+void calculateAnalyticalSolution()
+{
+	for (int i = 0; i < numberOfSteps; ++i)
+	{
+		anal_theta[i] = initial_theta*cos(i*h);
+	}
 }
 
 /*

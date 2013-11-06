@@ -5,8 +5,8 @@
 #include <ctime>
 
 #define simulatedTime 60.0										//simulated time (seconds)
-#define h 0.01																//step size
-#define numberOfSteps  int(simulatedTime / h)	//used for sizing arrays
+//#define h 0.01																//step size
+//#define numberOfSteps  int(simulatedTime / h)	//used for sizing arrays
 #define g 9.81																//acceleration due to gravity
 #define pi atan(1.0)													//mutha fuckin pi man
 
@@ -17,6 +17,7 @@ using namespace std;
 
 //double pendulum functions
 void double_pendulum();
+void updateRK4(double, double, double, int);
 
 //helper functions
 void updateProgress(int);
@@ -53,10 +54,24 @@ a8"    `Y88 a8"     "8a 88       88 88P'    "8a 88 a8P_____88
 
 */
 
+/********************************* GLOBAL VARIABLES ********************************/
+
+double rk4_theta [numberOfSteps];						//angular displacement of 1st pendulum
+double rk4_psi [numberOfSteps];							//angular displacement of 2nd pendulum
+double rk4_w [numberOfSteps];								//angular acceleration of 1st pendulum
+double rk4_v [numberOfSteps];								//angular acceleration of 2nd pendulum
+
+double k1[4], k2[4], k3[4], k4[4];					//RK4 values
+
+/************************************************************************************/
+
 //simulates the motion of a double pendulum
 //using the RK4 finite difference method
 void double_pendulum()
 {
+	double h =  0.01;																//step size
+	int numberOfSteps = int(simulatedTime / h);		//used for sizing arrays
+
 	char processName[64] = "Double Pendulum";
 
 	double t = 0;																//time (needed?)
@@ -66,23 +81,17 @@ void double_pendulum()
 	double gamma = 0.0;													//damping coefficient
 
 	double beta = gamma/(m* sqrt( g*l ));				//matrix constant
-	double G = beta;
+	double G = beta;														//matrix constant
 	double R = M/m;															//matrix constant
 
-	double initial_theta = 1.1;									//angle from vert for pendulum 1 (starting angle)
+	R = 100;
+
+	double initial_theta = 0.1;									//angle from vert for pendulum 1 (starting angle)
 	double initial_psi = 0.0;										//angle from vert for pendulum 2 (starting angle)
 	double initial_w = 0.0;											//rate of change of angle from vert for pendulum 1 (starting at rest)
 	double initial_v = 0.0;											//rate of change of angle from vert for pendulum 2 (starting at rest)
 
-	double rk4_theta [numberOfSteps];						//angular displacement of 1st pendulum
-	double rk4_psi [numberOfSteps];							//angular displacement of 2nd pendulum
-	double rk4_w [numberOfSteps];								//angular acceleration of 1st pendulum
-	double rk4_v [numberOfSteps];								//angular acceleration of 2nd pendulum
 
-	double y[4][numberOfSteps];									//hold all variables in multidimensional array
-
-	//double k_1, k_2, k_3, k_4;								//used in old rk4 method
-	double k1[4], k2[4], k3[4], k4[4];					//RK4 values
 
 	std::cout.precision(1);											//sets the number of decimal places time is outputted to
 																							//see: http://www.cplusplus.com/reference/ios/scientific/
@@ -112,7 +121,9 @@ void double_pendulum()
 		//end output for this iteration
 		double_pen << "\n";
 
-		/************** NEW RK4 METHOD **************/
+		updateRK4(h, R, G);
+
+		/************** NEW RK4 METHOD ************** /
 
 		k1[0] = h * rk4_w[i];
 		k1[1] = h * rk4_v[i];
@@ -144,6 +155,35 @@ void double_pendulum()
 
 	}
 } //end double_pendulum
+
+void updateRK4(double h, double R, double G)
+{
+	/************** NEW RK4 METHOD **************/
+	k1[0] = h * rk4_w[i];
+	k1[1] = h * rk4_v[i];
+	k1[2] = h * ( -(R+1.0)*rk4_theta[i] + R*rk4_psi[i] - G*rk4_w[i] );
+	k1[3] = h * ( (R+1.0)*rk4_theta[i] -(R+1.0)*rk4_psi[i] + G*(1.0-(1.0/R))*rk4_w[i] - (G/R)*rk4_v[i] );
+
+	k2[0] = h * ( rk4_w[i] 		+ 0.5*k1[2] );
+	k2[1] = h * ( rk4_v[i]	+ 0.5*k1[3] );
+	k2[2] = h * ( -(R+1.0)*(rk4_theta[i] + 0.5*k1[0]) + R*(rk4_psi[i] + 0.5*k1[1]) - G*(rk4_w[i] + 0.5*k1[2]) );
+	k2[3] = h * ( (R+1.0)*(rk4_theta[i] + 0.5*k1[0]) -(R+1.0)*(rk4_psi[i] + 0.5*k1[1]) + G*(1.0-(1.0/R))*(rk4_w[i] + 0.5*k1[2]) - (G/R)*(rk4_v[i] + 0.5*k1[3]) );
+
+	k3[0] = h * ( rk4_w[i] 		+ 0.5*k2[2] );
+	k3[1] = h * ( rk4_v[i]	+ 0.5*k2[3] );
+	k3[2] = h * ( -(R+1.0)*(rk4_theta[i] + 0.5*k2[0]) + R*(rk4_psi[i] + 0.5*k2[1]) - G*(rk4_w[i] + 0.5*k2[2]) );
+	k3[3] = h * ( (R+1.0)*(rk4_theta[i] + 0.5*k2[0]) -(R+1.0)*(rk4_psi[i] + 0.5*k2[1]) + G*(1.0-(1.0/R))*(rk4_w[i] + 0.5*k2[2]) - (G/R)*(rk4_v[i] + 0.5*k2[3]) );
+
+	k4[0] = h * ( rk4_w[i] 		+ k3[2] );
+	k4[1] = h * ( rk4_v[i]	+ k3[3] );
+	k4[2] = h * ( -(R+1.0)*(rk4_theta[i] + k3[0]) + R*(rk4_psi[i] + k3[1]) - G*(rk4_w[i] + k3[2]) );
+	k4[3] = h * ( (R+1.0)*(rk4_theta[i] + k3[0]) -(R+1.0)*(rk4_psi[i] + k3[1]) + G*(1.0-(1.0/R))*(rk4_w[i] + k3[2]) - (G/R)*(rk4_v[i] + k3[3]) );
+
+	rk4_theta[i+1]	= rk4_theta[i]	+ (1.0/6.0)*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0]);
+	rk4_psi[i+1]		= rk4_psi[i]		+ (1.0/6.0)*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1]);
+	rk4_w[i+1]			= rk4_w[i]			+ (1.0/6.0)*(k1[2] + 2*k2[2] + 2*k3[2] + k4[2]);
+	rk4_v[i+1]			= rk4_v[i]			+ (1.0/6.0)*(k1[3] + 2*k2[3] + 2*k3[3] + k4[3]);
+}
 
 
 /*
