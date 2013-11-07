@@ -8,8 +8,10 @@
 #include <string>
 
 #define simulatedTime 10.0											//simulated time (seconds)
-#define h 0.01																	//step size
-#define numberOfSteps  int(simulatedTime / h)		//used for sizing arrays
+#define h_min 0.02
+#define h_max 0.5
+#define h_step 0.02
+#define numberOfSteps int(simulatedTime / h_min)	//used for sizing arrays
 #define g 9.81																	//acceleration due to gravity
 #define pi atan(1.0)														//mutha fuckin pi man
 
@@ -18,55 +20,65 @@
 
 using namespace std;
 
+void single_pendulum(double, double);
+void setInitialValues(double, double);
+
+string makeFileName(double, double, string);
 void initFile(ostream&, string);
 string makePositionHeading(string);
 string makeEnergyHeading(string);
+
 void outputPositionToFile(ostream&, double, double);
 void outputEnergyToFile(ostream&, double, double, double);
 
-void setInitialValues();
-
-void single_pendulum();
-
-void updateEnergies(int);
-void updateEuler(int);
-void updateLeapfrog(int);
-void updateRK4(int);
+void updateEuler(int, double, double);
+void updateLeapfrog(int, double, double);
+void updateRK4(int, double, double);
+void updateEnergies(int, double, double);
 
 double calculateKineticEnergy(double m, double l, double theta, double w);
 double calculatePotentialEnergy(double m, double l, double theta, double w);
 
-void eulerStabilityTest();
-void stabilityTest();
+void eulerStabilityTest(double);
+void stabilityTest(double, double, double);
 string isStable(double, double);
-void calculateAnalyticalSolution();
+void calculateAnalyticalSolution(double);
 
 //helper functions
-void updateProgress(int);
-void updateProgress(int, char[]);
+void updateProgress(double, char[]);
 void done();
 
 int main()
 {
-	setInitialValues();
-	single_pendulum();
-	stabilityTest();
-	eulerStabilityTest();
+	char processName[64] = "Single Pendulum";
+
+	double h, damping_constant;
+
+	double damping_constant_min = 0;
+	double damping_constant_max = 1;
+	double damping_constant_step = 0.1;
+
+	int h_range = int( (h_max - h_min)/h_step );
+	int damping_constant_range = int( (damping_constant_max - damping_constant_min)/damping_constant_step );
+
+	for (int i = 0; i < h_range; ++i)
+	{
+		updateProgress(i/h_range, processName);
+		h = h_min + i*h_step;
+		for (int j = 0; j < damping_constant_range; ++j)
+		{
+			damping_constant = damping_constant_min + j*damping_constant_step;
+			//make the call
+			single_pendulum(h, damping_constant);
+		}
+	}
+	//stabilityTest(m, l, h);
+	//eulerStabilityTest(h);
 	done();
 	return 0;
 }
 
 /********** GLOBAL VARIABLES COS FUCK EFFICIENCY ***********/
-
-double t = 0;																//time
-double l = 9.81;														//length of pendulem in metres
-double m = 1.0;															//mass of pendulum in kg
-double damping_constant = 0.0;													//damping coefficient
-double beta = damping_constant/(m* sqrt( g*l ));				//matrix constant
-
-//initial conditions
-double initial_theta = 0.15;									//angle from vert (starting angle)
-double initial_w = 0;												//rate of change of angle from vert (starting at rest)
 
 //euler variable arrays
 double euler_theta [numberOfSteps];					//stores all theta values
@@ -97,51 +109,6 @@ double err_theta[numberOfSteps];
 
 /***************************************************************/
 
-void initFile(ostream& file, string processName)
-{
-	//first column is always time
-	file << "time" ;
-	//position heading
-	if(outputPositions)
-	{
-		file << makePositionHeading(processName);
-	}
-	//energy heading
-	if(outputEnergies)
-	{
-		file << makeEnergyHeading(processName);
-	}
-	//end column headers
-	file << "\n";
-}
-
-string makePositionHeading(string processName)
-{
-	stringstream string;
-	string << "," << processName << "_theta," << processName << "_w" ;
-	return string.str();
-}
-
-string makeEnergyHeading(string processName)
-{
-	stringstream string;
-	string << "," << processName << "_T," << processName << "_U," << processName << "_E" ;
-	return string.str();
-}
-
-void setInitialValues()
-{
-	//set initial values
-	euler_theta[0] = initial_theta;
-	euler_w[0] = initial_w;
-
-	leapfrog_theta[0] = initial_theta;
-	leapfrog_w[0] = initial_w;
-
-	rk4_theta[0] = initial_theta;
-	rk4_w[0] = initial_w;
-}
-
 /*
                                       
           88                         88                                                   
@@ -159,35 +126,36 @@ aa    ]8I 88 88       88 "8a,   ,d88 88 "8b,   ,aa    88b,   ,a8" "8b,   ,aa 88 
 
 //simulates the motion of a single pendulum
 //using multiple finite difference methods
-void single_pendulum()
+void single_pendulum(double h, double gamma)
 {
-	char processName[64] = "Single Pendulum";
+	double t = 0;																						//time
+	double l = 9.81;																				//length of pendulem in metres
+	double m = 1.0;																					//mass of pendulum in kg
+	double damping_constant = 0.0;													//damping coefficient
+	double beta = damping_constant/(m* sqrt( g*l ));				//matrix constant
 
-	ofstream single_pen("data/single_pen_combined.csv");
+	//initial conditions
+	double initial_theta = 0.15;														//angle from vert (starting angle)
+	double initial_w = 0;																		//rate of change of angle from vert (starting at rest)
 
-	if(outputPositions)
-	{
-		single_pen << ",euler_theta,euler_w" ;
-		single_pen << ",leapfrog_theta,leapfrog_w" ;
-		single_pen << ",rk4_theta,rk4_w" ;
-	}
+	setInitialValues(initial_theta, initial_w);
+	updateEnergies(0, m, l);
 
-	if(outputEnergies)
-	{
-		single_pen << ",euler_T,euler_U, euler_E" ;
-		single_pen << ",leapfrog_T,leapfrog_U, leapfrog_E" ;
-		single_pen << ",rk4_T,rk4_U, rk4_E" ;
-	}
-	//end column headers
-	single_pen << "\n";
+	std::cout.precision(1);																	//sets the number of decimal places time is outputted to
+																													//see: http://www.cplusplus.com/reference/ios/scientific/
 
-	ofstream euler_single_pen("data/euler_single_pen.csv");
-	ofstream leapfrog_single_pen("data/leapfrog_single_pen.csv");
-	ofstream rk4_single_pen("data/rk4_single_pen.csv");
-
-	initFile(euler_single_pen, "euler");
-	initFile(leapfrog_single_pen, "leapfrog");
-	initFile(rk4_single_pen, "rk4");
+	//create custom filenames
+	string eulerFileName		= makeFileName(h, damping_constant, "euler");
+	string leapfrogFileName	= makeFileName(h, damping_constant, "leapfrog");
+	string rk4FileName			= makeFileName(h, damping_constant, "rk4");
+	//open up files
+	ofstream eulerFile(eulerFileName);
+	ofstream leapfrogFile(leapfrogFileName);
+	ofstream rk4File(rk4FileName);
+	//set column headings
+	initFile(eulerFile, "euler");
+	initFile(leapfrogFile, "leapfrog");
+	initFile(rk4File, "rk4");
 
 	//sets the number of decimal places time is outputted to
 	//see: http://www.cplusplus.com/reference/ios/scientific/
@@ -209,68 +177,95 @@ aa    ]8I 88 88      88      88 888    88 "8a,   ,a8" "8a,   ,a8" 88b,   ,a8"
 
 	for (int i = 0; i < numberOfSteps; i++)
 	{
-		updateEnergies(i);
+		
 
 		/************** OUTPUT TO FILE **************/
 
 		//output time
 		t = h*i;
-		euler_single_pen << std::fixed << t ;
-		leapfrog_single_pen << std::fixed << t ;
-		rk4_single_pen << std::fixed << t ;
+		eulerFile << std::fixed << t ;
+		leapfrogFile << std::fixed << t ;
+		rk4File << std::fixed << t ;
 	
 
 		if(outputPositions)
 		{
-			outputPositionToFile(euler_single_pen, euler_theta[i], euler_w[i]);
-			outputPositionToFile(leapfrog_single_pen, leapfrog_theta[i], leapfrog_w[i]);
-			outputPositionToFile(rk4_single_pen, rk4_theta[i], rk4_w[i]);
+			outputPositionToFile(eulerFile, euler_theta[i], euler_w[i]);
+			outputPositionToFile(leapfrogFile, leapfrog_theta[i], leapfrog_w[i]);
+			outputPositionToFile(rk4File, rk4_theta[i], rk4_w[i]);
 		}
 
 		if(outputEnergies)
 		{
-			outputEnergyToFile(euler_single_pen, euler_T[i], euler_U[i], euler_E[i]);
-			outputEnergyToFile(leapfrog_single_pen, leapfrog_T[i], leapfrog_U[i], leapfrog_E[i]);
-			outputEnergyToFile(rk4_single_pen, rk4_T[i], rk4_U[i], rk4_E[i]);
+			outputEnergyToFile(eulerFile, euler_T[i], euler_U[i], euler_E[i]);
+			outputEnergyToFile(leapfrogFile, leapfrog_T[i], leapfrog_U[i], leapfrog_E[i]);
+			outputEnergyToFile(rk4File, rk4_T[i], rk4_U[i], rk4_E[i]);
 		}
 
-		euler_single_pen << "\n" ;
-		leapfrog_single_pen << "\n" ;
-		rk4_single_pen << "\n" ;
+		eulerFile << "\n" ;
+		leapfrogFile << "\n" ;
+		rk4File << "\n" ;
 		
-		/****************************************************************/
-		//output time
-		single_pen << std::fixed << t ;
-
-		if(outputPositions)
-		{
-			single_pen << std::scientific << "," << euler_theta[i] << "," << euler_w[i] ;
-			single_pen << std::scientific << "," << leapfrog_theta[i] << "," << leapfrog_w[i] ;
-			single_pen << std::scientific << "," << rk4_theta[i] << "," << rk4_w[i] ;
-		}
-
-		if(outputEnergies)
-		{
-			single_pen << std::scientific << "," << euler_T[i] << "," << euler_U[i] << "," << euler_E[i];
-			single_pen << std::scientific << "," << leapfrog_T[i] << "," << leapfrog_U[i] << "," << leapfrog_E[i];
-			single_pen << std::scientific << "," << rk4_T[i] << "," << rk4_U[i] << "," << rk4_E[i];
-		}
-
-		//end output for this iteration
-		single_pen << "\n";
-		/****************************************************************/
-		
-		updateEuler(i);
-		updateLeapfrog(i);
-		updateRK4(i);
-
-		//update progress meter in terminal
-		updateProgress(i, processName);
+		updateEuler(i, h, beta);
+		updateLeapfrog(i, h, beta);
+		updateRK4(i, h, beta);
+		updateEnergies(i+1, m, l);
 
 	}
 } //end single_pendulum()
 
-void updateEnergies(int i)
+void setInitialValues(double theta, double w)
+{
+	//set initial values
+	euler_theta[0] = theta;
+	euler_w[0] = w;
+
+	leapfrog_theta[0] = theta;
+	leapfrog_w[0] = w;
+
+	rk4_theta[0] = theta;
+	rk4_w[0] = w;
+}
+
+string makeFileName(double h, double gamma, string processName)
+{
+	stringstream name;
+	name << "data/sp/single_pen_" << processName << "_h=" << h << "_gamma=" << gamma << ".csv";
+	return name.str();
+}
+
+void initFile(ostream& file, string processName)
+{
+	//first column is always time
+	file << "time" ;
+	//position heading
+	if(outputPositions)
+	{
+		file << makePositionHeading(processName);
+	}
+	//energy heading
+	if(outputEnergies)
+	{
+		file << makeEnergyHeading(processName);
+	}
+	file << "\n";
+}
+
+string makePositionHeading(string processName)
+{
+	stringstream string;
+	string << "," << processName << "_theta," << processName << "_w" ;
+	return string.str();
+}
+
+string makeEnergyHeading(string processName)
+{
+	stringstream string;
+	string << "," << processName << "_T," << processName << "_U," << processName << "_E" ;
+	return string.str();
+}
+
+void updateEnergies(int i, double m, double l)
 {
 	//euler
 	euler_T[i] = calculateKineticEnergy(m, l, euler_theta[i], euler_w[i]);
@@ -298,7 +293,7 @@ void outputEnergyToFile(ostream& file, double T, double U, double E)
 	file << std::scientific << "," << T << "," << U << "," << E;
 }
 
-void updateEuler(int i)
+void updateEuler(int i, double h, double beta)
 {
 	//update euler_theta
 	euler_theta[i+1] =  ( h*euler_w[i] ) + euler_theta[i];
@@ -306,7 +301,7 @@ void updateEuler(int i)
 	euler_w[i+1] = -h*euler_theta[i] + ( 1 - h*beta )*euler_w[i];
 }
 
-void updateLeapfrog(int i)
+void updateLeapfrog(int i, double h, double beta)
 {
 	if(i==0) //we need to use the euler method to give us some initial values
 	{
@@ -324,7 +319,7 @@ void updateLeapfrog(int i)
 	}
 }
 
-void updateRK4(int i)
+void updateRK4(int i, double h, double beta)
 {
 	k_1 = h * ( rk4_w[i] );
 	k_2 = h * ( rk4_w[i] + 0.5*k_1 );
@@ -341,8 +336,8 @@ void updateRK4(int i)
 	rk4_w[i+1] = rk4_w[i] + (1.0/6.0)*(k_1 + 2*k_2 + 2*k_3 + k_4);
 }
 
-void stabilityTest() {
-	calculateAnalyticalSolution();
+void stabilityTest(double m, double l, double h) {
+	calculateAnalyticalSolution(h);
 	
 	double anal_E_initial	= calculateKineticEnergy(m, l, anal_theta[0], anal_w[0]);
 	double anal_E_final		= calculateKineticEnergy(m, l, anal_theta[numberOfSteps-1], anal_w[numberOfSteps-1]);
@@ -370,10 +365,10 @@ string isStable(double E_i, double E_f) {
 	}
 }
 
-void eulerStabilityTest()
+void eulerStabilityTest(double h)
 {
 	ofstream stabilityTestLog("data/euler_stability_test.csv");
-	calculateAnalyticalSolution();
+	calculateAnalyticalSolution(h);
 	stabilityTestLog << "time,euler_theta,anal_theta,g,stable?\n" ;
 	double g_stab = 0.0;
 	for (int i = 0; i < numberOfSteps; ++i)
@@ -395,11 +390,11 @@ void eulerStabilityTest()
 	}
 }
 
-void calculateAnalyticalSolution()
+void calculateAnalyticalSolution(double h)
 {
 	for (int i = 0; i < numberOfSteps; ++i)
 	{
-		anal_theta[i] = initial_theta*cos(i*h);
+		anal_theta[i] = euler_theta[0]*cos(i*h);
 	}
 }
 
@@ -430,9 +425,9 @@ double calculatePotentialEnergy(double m, double l, double theta, double w)
 }
 
 //updates the progress display on commandline
-void updateProgress(int i, char *name)
+void updateProgress(double progress, char *name)
 {
-		cout << std::fixed << "\r"<< "Currently running " << name << " - " << (float(i)/numberOfSteps)*100 << "\%" << flush;
+		cout << std::fixed << "\r" << "Currently running " << name << " - " << progress*100 << "\%" << flush;
 }
 
 //displays done message to terminal
