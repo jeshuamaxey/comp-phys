@@ -6,15 +6,16 @@
 #include <sstream>
 #include <string>
 
-#define simulatedTime 60.0										//simulated time (seconds)
+#define simulatedTime 60.0												//simulated time (seconds)
 #define h_min 0.01
 #define h_max 0.5
+#define h_step 0.02
 #define numberOfSteps int(simulatedTime / h_min)	//used for sizing arrays
-#define g 9.81																//acceleration due to gravity
-#define pi atan(1.0)													//mutha fuckin pi man
+#define g 9.81																		//acceleration due to gravity
+#define pi atan(1.0)															//mutha fuckin pi man
 
-#define outputPositions true									//determine what's outputted by the program to file
-#define outputEnergies false									//determine what's outputted by the program to file
+#define outputPositions true											//determine what's outputted by the program to file
+#define outputEnergies false											//determine what's outputted by the program to file
 
 using namespace std;
 
@@ -30,10 +31,40 @@ void done();
 
 int main()
 {
-	double h = h_min;														//step size
-	double G = 0;																//matrix constant - gamma/(m* sqrt( g*l ))
-	double R = 100;															//matrix constant - M/m
-	double_pendulum(h, G, R);
+	char processName[64] = "Double Pendulum";
+	
+	double h;
+	double G = 0;																			//matrix constant - gamma/(m* sqrt( g*l ))
+	double R = 100;																		//matrix constant - M/m
+
+	double G_min = 0;
+	double G_max = 1;
+	double G_step = 1;
+
+	double R_min = 1;
+	double R_max = 101;
+	double R_step = 10;
+
+	int h_range = int( (h_max - h_min)/h_step );
+	int G_range = int( (G_max - G_min)/G_step );
+	int R_range = int( (R_max - R_min)/R_step );
+
+	//yo dawg I heard you like for loops
+	for (int i = 0; i < h_range; ++i)
+	{
+		updateProgress(i, processName);
+		h = h_min + i*h_step;
+		for (int i = 0; i < G_range; ++i)
+		{
+			G = G_min + i*G_step;
+			for (int i = 0; i < R_range; ++i)
+			{
+				R = R_min + i*R_step;
+				//make the call
+				double_pendulum(h, G, R);
+			}
+		}
+	}
 	done();
 	return 0;
 }
@@ -76,7 +107,6 @@ double k1[4], k2[4], k3[4], k4[4];					//RK4 values
 //using the RK4 finite difference method
 void double_pendulum(double h, double G, double R)
 {
-	char processName[64] = "Double Pendulum";
 
 	double initial_theta = 0.1;									//angle from vert for pendulum 1 (starting angle)
 	double initial_psi = 0.0;										//angle from vert for pendulum 2 (starting angle)
@@ -113,9 +143,6 @@ void double_pendulum(double h, double G, double R)
 		double_pen << "\n";
 
 		updateRK4(h, R, G, i);
-
-		/************** PROGRESS **************/
-		updateProgress(i, processName);
 
 	}
 } //end double_pendulum
@@ -167,7 +194,7 @@ void updateRK4(double h, double R, double G, int i)
 string makeFileName(double h, double G, double R)
 {
 	stringstream name;
-	name << "data/double_pen_h="<< h << "_G=" << G << "_R=" << R << ".csv";
+	name << "data/dp/double_pen_h="<< h << "_G=" << G << "_R=" << R << ".csv";
 	return name.str();
 }
 
