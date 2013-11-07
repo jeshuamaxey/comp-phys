@@ -1,4 +1,0 @@
-Method,Initial Energy,Final Energy,Stable?
-Euler,0.0857427,1.19513,stable
-Leapfrog,0.0816282,1.0817,stable
-RK4,0.0917914,1.34096,stable
