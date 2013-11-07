@@ -22,10 +22,10 @@ using namespace std;
 //double pendulum functions
 void double_pendulum(double, double, double);
 void updateRK4(double, double, double, int);
+double calculateTotalEnergy(double, double, double, double, double);
 string makeFileName(double h, double G, double R);
 
 //helper functions
-void updateProgress(int);
 void updateProgress(int, char[]);
 void done();
 
@@ -150,6 +150,9 @@ void double_pendulum(double h, double G, double R)
 void updateRK4(double h, double R, double G, int i)
 {
 	/************** NEW RK4 METHOD **************/
+	//time permitting I might refactor this to
+	//loop through an update matrix, but it works
+	//in its current form.
 	k1[0] = h * rk4_w[i];
 	k1[1] = h * rk4_v[i];
 	k1[2] = h * ( -(R+1.0)*rk4_theta[i] + R*rk4_psi[i] - G*rk4_w[i] );
@@ -176,6 +179,27 @@ void updateRK4(double h, double R, double G, int i)
 	rk4_v[i+1]			= rk4_v[i]			+ (1.0/6.0)*(k1[3] + 2*k2[3] + 2*k3[3] + k4[3]);
 }
 
+//NOT READY FOR USE - WILL NOT COMPILE IN CURRENT STATE
+double calculateTotalEnergy(double theta, double psi, double w, double v, double R )
+{
+	double M = R;
+	double m = 1.0;
+	double l = 9.8; //THINK!
+	//KE
+	double T = 0.5*pow(l, 2.0)*( m*pow(w, 2.0) + M*(pow(w, 2.0) + pow(v, 2.0) +2*w*v*cos(theta-w)) );
+	//PE
+	double U = -g*r*( m*cos(theta) + M*(cos(theta) + cos(psi)) );
+	//return total energy
+	return T + U;
+}
+
+/*
+
+	double KE = 0.5*l*l*(m*w*w+M*(w*w+v*v+2.0*w*v));
+    
+  double PE = 0.5*g*((m+M)*l*y[0]*y[0]+M*l*y[1]*y[1]);
+
+*/
 
 /*
                                                                        
