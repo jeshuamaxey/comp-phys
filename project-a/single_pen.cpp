@@ -21,7 +21,8 @@
 
 using namespace std;
 
-void single_pendulum(double, double);
+//returns the number of loop iterations it ran for a particular simulation
+int single_pendulum(double, double);
 void updateStabilityTestFile(ostream& file, double E_f, double E_i);
 void setInitialValues(double, double);
 
@@ -109,14 +110,14 @@ int main()
 		{
 			damping_constant = damping_constant_min + j*damping_constant_step;
 			//make the call
-			single_pendulum(h, damping_constant);
+			int maxIndex = single_pendulum(h, damping_constant);
 
 			if(runStabilityTest)
 			{
 				energyStabTestFile << h ;
-				updateStabilityTestFile(energyStabTestFile, euler_E[1], euler_E[numberOfSteps-1]);
-				updateStabilityTestFile(energyStabTestFile, leapfrog_E[1], leapfrog_E[numberOfSteps-1]);
-				updateStabilityTestFile(energyStabTestFile, rk4_E[1], rk4_E[numberOfSteps-1]);
+				updateStabilityTestFile(energyStabTestFile, euler_E[1], euler_E[maxIndex]);
+				updateStabilityTestFile(energyStabTestFile, leapfrog_E[1], leapfrog_E[maxIndex]);
+				updateStabilityTestFile(energyStabTestFile, rk4_E[1], rk4_E[maxIndex]);
 				energyStabTestFile << "\n";
 			}
 		}
@@ -144,7 +145,7 @@ aa    ]8I 88 88       88 "8a,   ,d88 88 "8b,   ,aa    88b,   ,a8" "8b,   ,aa 88 
 
 //simulates the motion of a single pendulum
 //using multiple finite difference methods
-void single_pendulum(double h, double damping_constant)
+int single_pendulum(double h, double damping_constant)
 {
 	double t = 0;																						//time
 	double l = 9.81;																				//length of pendulem in metres
@@ -192,7 +193,9 @@ aa    ]8I 88 88      88      88 888    88 "8a,   ,a8" "8a,   ,a8" 88b,   ,a8"
                                                                   88 
 */
 
-	for (int i = 0; i < numberOfSteps; i++)
+  //set loop limit
+  int loopLimit = int(simulatedTime / h);
+	for (int i = 0; i < loopLimit; i++)
 	{
 		
 
@@ -229,6 +232,7 @@ aa    ]8I 88 88      88      88 888    88 "8a,   ,a8" "8a,   ,a8" 88b,   ,a8"
 		updateEnergies(i+1, m, l);
 
 	}
+	return loopLimit-1;
 } //end single_pendulum()
 
 void setInitialValues(double theta, double w)
