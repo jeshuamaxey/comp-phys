@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 
-#define simulatedTime 10.0											//simulated time (seconds)
+#define simulatedTime 50.0											//simulated time (seconds)
 #define h_min 0.01
 #define h_max 4.0
 #define h_step 0.005
@@ -15,14 +15,14 @@
 #define g 9.81																	//acceleration due to gravity
 #define pi atan(1.0)														//mutha fuckin pi man
 
-#define outputPositions false										//determine what's outputted by the program to file
-#define outputEnergies true											//determine what's outputted by the program to file
+#define outputPositions true										//determine what's outputted by the program to file
+#define outputEnergies false											//determine what's outputted by the program to file
 #define runStabilityTest true
 
 using namespace std;
 
 void single_pendulum(double, double);
-void updateStabilityTestFile(ostream& file, double h, double E_f, double E_i);
+void updateStabilityTestFile(ostream& file, double E_f, double E_i);
 void setInitialValues(double, double);
 
 string makeFileName(double, double, string);
@@ -90,8 +90,8 @@ int main()
 	double h, damping_constant;
 
 	double damping_constant_min = 0.0;
-	double damping_constant_max = 1.0;
-	double damping_constant_step = 1.0;
+	double damping_constant_max = 1.5;
+	double damping_constant_step = 1.5;
 
 	int h_range = int( (h_max - h_min)/h_step );
 	int damping_constant_range = int( (damping_constant_max - damping_constant_min)/damping_constant_step );
@@ -114,9 +114,9 @@ int main()
 			if(runStabilityTest)
 			{
 				energyStabTestFile << h ;
-				updateStabilityTestFile(energyStabTestFile, h, euler_E[0], euler_E[numberOfSteps-1]);
-				updateStabilityTestFile(energyStabTestFile, h, leapfrog_E[0], leapfrog_E[numberOfSteps-1]);
-				updateStabilityTestFile(energyStabTestFile, h, rk4_E[0], rk4_E[numberOfSteps-1]);
+				updateStabilityTestFile(energyStabTestFile, euler_E[1], euler_E[numberOfSteps-1]);
+				updateStabilityTestFile(energyStabTestFile, leapfrog_E[1], leapfrog_E[numberOfSteps-1]);
+				updateStabilityTestFile(energyStabTestFile, rk4_E[1], rk4_E[numberOfSteps-1]);
 				energyStabTestFile << "\n";
 			}
 		}
@@ -152,7 +152,7 @@ void single_pendulum(double h, double damping_constant)
 	double beta = damping_constant/(m* sqrt( g*l ));				//matrix constant
 
 	//initial conditions
-	double initial_theta = 0.15;														//angle from vert (starting angle)
+	double initial_theta = 0.1;															//angle from vert (starting angle)
 	double initial_w = 0;																		//rate of change of angle from vert (starting at rest)
 
 	setInitialValues(initial_theta, initial_w);
@@ -295,16 +295,17 @@ void updateEnergies(int i, double m, double l)
 	euler_T[i] = calculateKineticEnergy(m, l, euler_theta[i], euler_w[i]);
 	euler_U[i] = calculatePotentialEnergy(m, l, euler_theta[i], euler_w[i]);
 	euler_E[i] = euler_T[i] + euler_U[i];
-
+	//euler_E[i] = pow(euler_theta[i], 2.0) + pow(sqrt(g/l)*euler_w[i], 2.0);
 	//leapfrog
 	leapfrog_T[i] = calculateKineticEnergy(m, l, leapfrog_theta[i], leapfrog_w[i]);
 	leapfrog_U[i] = calculatePotentialEnergy(m, l, leapfrog_theta[i], leapfrog_w[i]);
 	leapfrog_E[i] = leapfrog_T[i] + leapfrog_U[i];
-
+	//leapfrog_E[i] = pow(leapfrog_theta[i], 2.0) + pow(sqrt(g/l)*leapfrog_w[i], 2.0);
 	//RK4
 	rk4_T[i] = calculateKineticEnergy(m, l, rk4_theta[i], rk4_w[i]);
 	rk4_U[i] = calculatePotentialEnergy(m, l, rk4_theta[i], rk4_w[i]);
 	rk4_E[i] = rk4_T[i] + rk4_U[i];
+	//rk4_E[i] = pow(rk4_theta[i], 2.0) + pow(sqrt(g/l)*rk4_w[i], 2.0);
 }
 
 void outputPositionToFile(ostream& file, double theta, double w)
@@ -360,9 +361,18 @@ void updateRK4(int i, double h, double beta)
 	rk4_w[i+1] = rk4_w[i] + (1.0/6.0)*(k_1 + 2*k_2 + 2*k_3 + k_4);
 }
 
-void updateStabilityTestFile(ostream& file, double h, double E_f, double E_i)
+void updateStabilityTestFile(ostream& file, double E_i, double E_f)
 {
-	file << "," <<  E_f / E_i;
+	double ratio = E_f / E_i;
+	//ratio != ratio checks to see if ratio = nan
+	if(ratio > 4.0 || ratio != ratio)
+	{
+		file << "," <<  4.0;
+	}
+	else
+	{
+		file << "," <<  ratio;
+	}
 }
 
 void stabilityTest(double m, double l, double h) {
@@ -444,6 +454,8 @@ void calculateAnalyticalSolution(double h)
 //calculate kinetic energy
 double calculateKineticEnergy(double m, double l, double theta, double w)
 {
+	double adjustment = sqrt(g/l);
+	w *= adjustment;
 	return 0.5*m*pow(l,2.0)*pow(w,2.0);
 }
 
