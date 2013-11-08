@@ -14,19 +14,23 @@
 #define g 9.81																		//acceleration due to gravity
 #define pi atan(1.0)															//mutha fuckin pi man
 
-#define outputPositions true											//determine what's outputted by the program to file
-#define outputEnergies false											//determine what's outputted by the program to file
+#define outputPositions false											//determine what's outputted by the program to file
+#define outputEnergies true											//determine what's outputted by the program to file
+
+#define useTestDir true
 
 using namespace std;
 
 //double pendulum functions
 void double_pendulum(double, double, double);
 void updateRK4(double, double, double, int);
-double calculateTotalEnergy(double, double, double, double, double);
+double calculateTotalEnergy(double, double, double, double, double, double);
+double calculatePotentialEnergy(double, double, double, double, double, double);
+double calculateKineticEnergy(double, double, double, double, double, double);
 string makeFileName(double h, double G, double R);
 
 //helper functions
-void updateProgress(int, char[]);
+void updateProgress(double, char[]);
 void done();
 
 int main()
@@ -52,7 +56,7 @@ int main()
 	//yo dawg I heard you like for loops
 	for (int i = 0; i < h_range; ++i)
 	{
-		updateProgress(i, processName);
+		updateProgress(float(i)/h_range, processName);
 		h = h_min + i*h_step;
 		for (int i = 0; i < G_range; ++i)
 		{
@@ -127,8 +131,15 @@ void double_pendulum(double h, double G, double R)
 	ofstream double_pen(fileName);
 	//first column is always time
 	double_pen << "time" ;
-	//rk4
-	double_pen << ",rk4_theta,rk4_psi,rk4_w,rk4_v" ;
+
+	if(outputPositions)
+	{
+		double_pen << ",rk4_theta,rk4_psi,rk4_w,rk4_v" ;
+	}
+	if(outputEnergies)
+	{
+		double_pen << ",U,T,E" ;
+	}
 	//end column headers
 	double_pen << "\n";
 
@@ -137,8 +148,20 @@ void double_pendulum(double h, double G, double R)
 		/************** OUTPUT **************/
 		//output time
 		double_pen << std::fixed << h*i ;
-		//output rk4
-		double_pen << std::scientific << "," << rk4_theta[i] << "," << rk4_psi[i] << "," << rk4_w[i] << "," << rk4_v[i] ;
+		
+		if(outputPositions)
+		{
+			double_pen << std::scientific << "," << rk4_theta[i] << "," << rk4_psi[i] << "," << rk4_w[i] << "," << rk4_v[i] ;
+		}
+		if(outputEnergies)
+		{
+			double U = calculatePotentialEnergy(rk4_theta[i], rk4_psi[i], rk4_w[i], rk4_v[i], R, G );
+			double T = calculateKineticEnergy(rk4_theta[i], rk4_psi[i], rk4_w[i], rk4_v[i], R, G );
+			double_pen << std::scientific << "," << U
+																		<< "," << T
+																		<< "," << U+T ;
+		}
+
 		//end output for this iteration
 		double_pen << "\n";
 
@@ -179,25 +202,50 @@ void updateRK4(double h, double R, double G, int i)
 	rk4_v[i+1]			= rk4_v[i]			+ (1.0/6.0)*(k1[3] + 2*k2[3] + 2*k3[3] + k4[3]);
 }
 
-//NOT READY FOR USE - WILL NOT COMPILE IN CURRENT STATE
-double calculateTotalEnergy(double theta, double psi, double w, double v, double R )
+double calculateTotalEnergy(double theta, double psi, double w, double v, double R, double G )
 {
 	double M = R;
 	double m = 1.0;
-	double l = 9.8; //THINK!
-	//KE
-	double T = 0.5*pow(l, 2.0)*( m*pow(w, 2.0) + M*(pow(w, 2.0) + pow(v, 2.0) +2*w*v*cos(theta-w)) );
-	//PE
-	double U = -g*r*( m*cos(theta) + M*(cos(theta) + cos(psi)) );
-	//return total energy
-	return T + U;
+	double l = 1.0; //THINK!
+	
+				//Kinetic Energy 								 +		//Potential Energy
+	return 0.5*pow(l, 2.0)*( m*pow(w, 2.0) + M*( pow(w, 2.0) + pow(v, 2.0) +2*w*v ) ) + 0.5*g*( (m+M)*l*w*w + M*l*psi*psi );
+}
+
+double calculatePotentialEnergy(double theta, double psi, double w, double v, double R, double G )
+{
+	double M = R;
+	double m = 1.0;
+	double l = 1.0;
+
+	//
+	double adjustment = sqrt(g/l);
+
+	w *= adjustment;
+	v *= adjustment;
+
+	return 0.5*g*( (m+M)*l*theta*theta + M*l*psi*psi ); // -g*l*( m*cos(theta) + M*(cos(theta) + cos(psi)) );
+}
+
+double calculateKineticEnergy(double theta, double psi, double w, double v, double R, double G )
+{
+	double M = R;
+	double m = 1.0;
+	double l = 1.0;
+
+	double adjustment = sqrt(g/l);
+
+	w *= adjustment;
+	v *= adjustment;
+
+	return 0.5*pow(l, 2.0)*( m*pow(w, 2.0) + M*( pow(w, 2.0) + pow(v, 2.0) +2*w*v ) );
 }
 
 /*
 
 	double KE = 0.5*l*l*(m*w*w+M*(w*w+v*v+2.0*w*v));
     
-  double PE = 0.5*g*((m+M)*l*y[0]*y[0]+M*l*y[1]*y[1]);
+  double PE = 0.5*g*( (m+M)*l*w*w + M*l*psi*psi );
 
 */
 
@@ -218,18 +266,25 @@ double calculateTotalEnergy(double theta, double psi, double w, double v, double
 string makeFileName(double h, double G, double R)
 {
 	stringstream name;
-	name << "data/dp/double_pen_h="<< h << "_G=" << G << "_R=" << R << ".csv";
+	if(useTestDir)
+	{
+		name << "data/dp_test/double_pen_h="<< h << "_G=" << G << "_R=" << R << ".csv";
+	}
+	else
+	{
+		name << "data/dp/double_pen_h="<< h << "_G=" << G << "_R=" << R << ".csv";
+	}
 	return name.str();
 }
 
 //updates the progress display on commandline
-void updateProgress(int i, char *name)
+void updateProgress(double progress, char *name)
 {
-		cout << std::fixed << "\r"<< "Currently running " << name << " - " << (float(i)/numberOfSteps)*100 << "\%" << flush;
+		std::cout /*<< std::fixed*/ << "\r"<< "Currently running " << name << " - " << int(progress*100) << "%" << std::flush;
 }
 
 //displays done message to terminal
 void done()
 {
-	std::cout << "\r"<< "100\% - all done. Simulated time elapsed: " << simulatedTime << "s\n" << std::flush;
+	std::cout << std::fixed << "\r"<< "100\% - all done. Simulated time elapsed: " << simulatedTime << "s\n" << std::flush;
 }

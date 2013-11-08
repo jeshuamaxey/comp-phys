@@ -8,9 +8,9 @@
 #include <string>
 
 #define simulatedTime 10.0											//simulated time (seconds)
-#define h_min 0.02
-#define h_max 0.5
-#define h_step 0.02
+#define h_min 0.05
+#define h_max 0.1
+#define h_step 0.05
 #define numberOfSteps int(simulatedTime / h_min)	//used for sizing arrays
 #define g 9.81																	//acceleration due to gravity
 #define pi atan(1.0)														//mutha fuckin pi man
@@ -54,18 +54,18 @@ int main()
 
 	double h, damping_constant;
 
-	double damping_constant_min = 0;
-	double damping_constant_max = 1;
-	double damping_constant_step = 0.1;
+	double damping_constant_min = 0.0;
+	double damping_constant_max = 3.0;
+	double damping_constant_step = 1.0;
 
 	int h_range = int( (h_max - h_min)/h_step );
 	int damping_constant_range = int( (damping_constant_max - damping_constant_min)/damping_constant_step );
 
-	for (int i = 0; i < h_range; ++i)
+	for (int i = 0; i < h_range; i++)
 	{
-		updateProgress(i/h_range, processName);
+		updateProgress(float(i)/h_range, processName);
 		h = h_min + i*h_step;
-		for (int j = 0; j < damping_constant_range; ++j)
+		for (int j = 0; j < damping_constant_range; j++)
 		{
 			damping_constant = damping_constant_min + j*damping_constant_step;
 			//make the call
@@ -126,12 +126,11 @@ aa    ]8I 88 88       88 "8a,   ,d88 88 "8b,   ,aa    88b,   ,a8" "8b,   ,aa 88 
 
 //simulates the motion of a single pendulum
 //using multiple finite difference methods
-void single_pendulum(double h, double gamma)
+void single_pendulum(double h, double damping_constant)
 {
 	double t = 0;																						//time
 	double l = 9.81;																				//length of pendulem in metres
 	double m = 1.0;																					//mass of pendulum in kg
-	double damping_constant = 0.0;													//damping coefficient
 	double beta = damping_constant/(m* sqrt( g*l ));				//matrix constant
 
 	//initial conditions
@@ -427,7 +426,7 @@ double calculatePotentialEnergy(double m, double l, double theta, double w)
 //updates the progress display on commandline
 void updateProgress(double progress, char *name)
 {
-		cout << std::fixed << "\r" << "Currently running " << name << " - " << progress*100 << "\%" << flush;
+		cout << std::fixed << "\r" << "Currently running " << name << " - " << int(progress*100) << "\%" << flush;
 }
 
 //displays done message to terminal
