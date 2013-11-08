@@ -8,22 +8,25 @@
 #include <string>
 
 #define simulatedTime 10.0											//simulated time (seconds)
-#define h_min 0.05
-#define h_max 0.1
-#define h_step 0.05
+#define h_min 0.01
+#define h_max 4.0
+#define h_step 0.005
 #define numberOfSteps int(simulatedTime / h_min)	//used for sizing arrays
 #define g 9.81																	//acceleration due to gravity
 #define pi atan(1.0)														//mutha fuckin pi man
 
 #define outputPositions false										//determine what's outputted by the program to file
 #define outputEnergies true											//determine what's outputted by the program to file
+#define runStabilityTest true
 
 using namespace std;
 
 void single_pendulum(double, double);
+void updateStabilityTestFile(ostream& file, double h, double E_f, double E_i);
 void setInitialValues(double, double);
 
 string makeFileName(double, double, string);
+string makeStabTestFileName(string);
 void initFile(ostream&, string);
 string makePositionHeading(string);
 string makeEnergyHeading(string);
@@ -48,37 +51,7 @@ void calculateAnalyticalSolution(double);
 void updateProgress(double, char[]);
 void done();
 
-int main()
-{
-	char processName[64] = "Single Pendulum";
-
-	double h, damping_constant;
-
-	double damping_constant_min = 0.0;
-	double damping_constant_max = 3.0;
-	double damping_constant_step = 1.0;
-
-	int h_range = int( (h_max - h_min)/h_step );
-	int damping_constant_range = int( (damping_constant_max - damping_constant_min)/damping_constant_step );
-
-	for (int i = 0; i < h_range; i++)
-	{
-		updateProgress(float(i)/h_range, processName);
-		h = h_min + i*h_step;
-		for (int j = 0; j < damping_constant_range; j++)
-		{
-			damping_constant = damping_constant_min + j*damping_constant_step;
-			//make the call
-			single_pendulum(h, damping_constant);
-		}
-	}
-	//stabilityTest(m, l, h);
-	//eulerStabilityTest(h);
-	done();
-	return 0;
-}
-
-/********** GLOBAL VARIABLES COS FUCK EFFICIENCY ***********/
+/********** GLOBAL VARIABLES COS FUCK SCOPE ***********/
 
 //euler variable arrays
 double euler_theta [numberOfSteps];					//stores all theta values
@@ -108,6 +81,51 @@ double anal_w[numberOfSteps];
 double err_theta[numberOfSteps];
 
 /***************************************************************/
+
+
+int main()
+{
+	char processName[64] = "Single Pendulum";
+
+	double h, damping_constant;
+
+	double damping_constant_min = 0.0;
+	double damping_constant_max = 1.0;
+	double damping_constant_step = 1.0;
+
+	int h_range = int( (h_max - h_min)/h_step );
+	int damping_constant_range = int( (damping_constant_max - damping_constant_min)/damping_constant_step );
+
+	//create file to output stability test data to
+	ofstream energyStabTestFile("data/sp/energy_stab_test/data.csv");
+	//set column headings
+	energyStabTestFile << "h,Euler E_final/E_initial,Leapfrog E_final/E_initial,RK4 E_final/E_initial\n";
+
+	for (int i = 0; i < h_range; i++)
+	{
+		updateProgress(float(i)/h_range, processName);
+		h = h_min + i*h_step;
+		for (int j = 0; j < damping_constant_range; j++)
+		{
+			damping_constant = damping_constant_min + j*damping_constant_step;
+			//make the call
+			single_pendulum(h, damping_constant);
+
+			if(runStabilityTest)
+			{
+				energyStabTestFile << h ;
+				updateStabilityTestFile(energyStabTestFile, h, euler_E[0], euler_E[numberOfSteps-1]);
+				updateStabilityTestFile(energyStabTestFile, h, leapfrog_E[0], leapfrog_E[numberOfSteps-1]);
+				updateStabilityTestFile(energyStabTestFile, h, rk4_E[0], rk4_E[numberOfSteps-1]);
+				energyStabTestFile << "\n";
+			}
+		}
+	}
+	//stabilityTest(m, l, h);
+	//eulerStabilityTest(h);
+	done();
+	return 0;
+}
 
 /*
                                       
@@ -233,6 +251,13 @@ string makeFileName(double h, double gamma, string processName)
 	return name.str();
 }
 
+string makeStabTestFileName(string processName)
+{
+	stringstream name;
+	name << "data/sp/energy_stab_tests/" << processName << ".csv";
+	return name.str();
+}
+
 void initFile(ostream& file, string processName)
 {
 	//first column is always time
@@ -333,6 +358,11 @@ void updateRK4(int i, double h, double beta)
 	k_4 = -1*h * ( rk4_theta[i]+h + beta*(rk4_w[i] + k_3) );
 
 	rk4_w[i+1] = rk4_w[i] + (1.0/6.0)*(k_1 + 2*k_2 + 2*k_3 + k_4);
+}
+
+void updateStabilityTestFile(ostream& file, double h, double E_f, double E_i)
+{
+	file << "," <<  E_f / E_i;
 }
 
 void stabilityTest(double m, double l, double h) {

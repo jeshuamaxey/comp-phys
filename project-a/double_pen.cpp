@@ -280,7 +280,7 @@ string makeFileName(double h, double G, double R)
 //updates the progress display on commandline
 void updateProgress(double progress, char *name)
 {
-		std::cout /*<< std::fixed*/ << "\r"<< "Currently running " << name << " - " << int(progress*100) << "%" << std::flush;
+		std::cout << "\r"<< "Currently running " << name << " - " << int(progress*100) << "%" << std::flush;
 }
 
 //displays done message to terminal
