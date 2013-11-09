@@ -40,11 +40,6 @@ void updateLeapfrog(int, double, double);
 void updateRK4(int, double, double);
 void updateEnergies(int, double, double);
 
-void eulerStabilityTest(double);
-void stabilityTest(double, double, double);
-string isStable(double, double);
-void calculateAnalyticalSolution(double);
-
 //helper functions
 void updateProgress(double, char[]);
 void done();
@@ -367,70 +362,6 @@ void updateStabilityTestFile(ostream& file, double E_i, double E_f, int i)
 		file << "," <<  ratio;
 	}
 }
-
-/*
-void stabilityTest(double m, double l, double h) {
-	calculateAnalyticalSolution(h);
-	
-	double anal_E_initial	= calculateKineticEnergy(m, l, anal_theta[0], anal_w[0]);
-	double anal_E_final		= calculateKineticEnergy(m, l, anal_theta[numberOfSteps-1], anal_w[numberOfSteps-1]);
-
-	string euler_stable			= isStable(euler_E[0], euler_E[numberOfSteps-1]);
-	string leapfrog_stable	= isStable(leapfrog_E[0], leapfrog_E[numberOfSteps-1]);
-	string rk4_stable				= isStable(rk4_E[0], rk4_E[numberOfSteps-1]);
-
-	ofstream stabilityTestLog("data/stability_tests.csv");
-	stabilityTestLog << "Method,Initial Energy,Final Energy,Stable?\n" ;
-
-	stabilityTestLog << "Euler," 		<< euler_E[0]			<< "," << euler_E[numberOfSteps-1]		<< "," << euler_stable		<< "\n";
-	stabilityTestLog << "Leapfrog,"	<< leapfrog_E[0]	<< "," << leapfrog_E[numberOfSteps-1]	<< "," << leapfrog_stable	<< "\n";
-	stabilityTestLog << "RK4,"			<< rk4_E[0]				<< "," << rk4_E[numberOfSteps-1]			<< "," << rk4_stable			<< "\n";
-}
-
-string isStable(double E_i, double E_f) {
-	if(E_f > E_i)
-	{
-		return "stable";
-	}
-	else
-	{
-		return "unstable";
-	}
-}
-
-void eulerStabilityTest(double h)
-{
-	ofstream stabilityTestLog("data/euler_stability_test.csv");
-	calculateAnalyticalSolution(h);
-	stabilityTestLog << "time,euler_theta,anal_theta,g,stable?\n" ;
-	double g_stab = 0.0;
-	for (int i = 0; i < numberOfSteps; ++i)
-	{
-		err_theta[i] = euler_theta[i] - anal_theta[i];
-		if(i != 0)
-		{
-			g_stab = abs(err_theta[i]/err_theta[i-1]);
-			g_stab = floorf(g_stab * 10000 + 0.5) / 10000; //crude rounding method
-		}
-		if(g_stab<1.0)
-		{
-			stabilityTestLog << i*h << "," << euler_theta[i] << "," << anal_theta[i] << "," << g_stab << "," << "HELL YES!\n";
-		}
-		else
-		{
-			stabilityTestLog << i*h << "," << euler_theta[i] << "," << anal_theta[i] << "," << g_stab << "," << "NOPE\n";
-		}
-	}
-}
-
-void calculateAnalyticalSolution(double h)
-{
-	for (int i = 0; i < numberOfSteps; ++i)
-	{
-		anal_theta[i] = euler_theta[0]*cos(i*h);
-	}
-}
-*/
 
 /*
                                                                        
