@@ -16,14 +16,14 @@
 #define pi atan(1.0)														//mutha fuckin pi man
 
 #define outputPositions true										//determine what's outputted by the program to file
-#define outputEnergies false											//determine what's outputted by the program to file
+#define outputEnergies true											//determine what's outputted by the program to file
 #define runStabilityTest true
 
 using namespace std;
 
 //returns the number of loop iterations it ran for a particular simulation
 int single_pendulum(double, double);
-void updateStabilityTestFile(ostream& file, double E_f, double E_i);
+void updateStabilityTestFile(ostream&, double, double, int);
 void setInitialValues(double, double);
 
 string makeFileName(double, double, string);
@@ -33,15 +33,12 @@ string makePositionHeading(string);
 string makeEnergyHeading(string);
 
 void outputPositionToFile(ostream&, double, double);
-void outputEnergyToFile(ostream&, double, double, double);
+void outputEnergyToFile(ostream&, double);
 
 void updateEuler(int, double, double);
 void updateLeapfrog(int, double, double);
 void updateRK4(int, double, double);
 void updateEnergies(int, double, double);
-
-double calculateKineticEnergy(double m, double l, double theta, double w);
-double calculatePotentialEnergy(double m, double l, double theta, double w);
 
 void eulerStabilityTest(double);
 void stabilityTest(double, double, double);
@@ -74,7 +71,7 @@ double rk4_w [numberOfSteps];								//stores all w values
 double rk4_E [numberOfSteps];								//stores all E values
 double rk4_T [numberOfSteps];								//stores all T values
 double rk4_U [numberOfSteps];								//stores all U values
-double k_1, k_2, k_3, k_4;
+double k_1[2], k_2[2], k_3[2], k_4[2];
 
 //analytical solution & stabiliy testvars
 double anal_theta[numberOfSteps];
@@ -111,19 +108,17 @@ int main()
 			damping_constant = damping_constant_min + j*damping_constant_step;
 			//make the call
 			int maxIndex = single_pendulum(h, damping_constant);
-
+			
 			if(runStabilityTest)
 			{
 				energyStabTestFile << h ;
-				updateStabilityTestFile(energyStabTestFile, euler_E[1], euler_E[maxIndex]);
-				updateStabilityTestFile(energyStabTestFile, leapfrog_E[1], leapfrog_E[maxIndex]);
-				updateStabilityTestFile(energyStabTestFile, rk4_E[1], rk4_E[maxIndex]);
+				updateStabilityTestFile(energyStabTestFile, euler_E[1], euler_E[maxIndex], maxIndex);
+				updateStabilityTestFile(energyStabTestFile, leapfrog_E[1], leapfrog_E[maxIndex], maxIndex);
+				updateStabilityTestFile(energyStabTestFile, rk4_E[1], rk4_E[maxIndex], maxIndex);
 				energyStabTestFile << "\n";
 			}
 		}
 	}
-	//stabilityTest(m, l, h);
-	//eulerStabilityTest(h);
 	done();
 	return 0;
 }
@@ -153,7 +148,7 @@ int single_pendulum(double h, double damping_constant)
 	double beta = damping_constant/(m* sqrt( g*l ));				//matrix constant
 
 	//initial conditions
-	double initial_theta = 0.1;															//angle from vert (starting angle)
+	double initial_theta = 0.01;															//angle from vert (starting angle)
 	double initial_w = 0;																		//rate of change of angle from vert (starting at rest)
 
 	setInitialValues(initial_theta, initial_w);
@@ -217,9 +212,9 @@ aa    ]8I 88 88      88      88 888    88 "8a,   ,a8" "8a,   ,a8" 88b,   ,a8"
 
 		if(outputEnergies)
 		{
-			outputEnergyToFile(eulerFile, euler_T[i], euler_U[i], euler_E[i]);
-			outputEnergyToFile(leapfrogFile, leapfrog_T[i], leapfrog_U[i], leapfrog_E[i]);
-			outputEnergyToFile(rk4File, rk4_T[i], rk4_U[i], rk4_E[i]);
+			outputEnergyToFile(eulerFile, euler_E[i]);
+			outputEnergyToFile(leapfrogFile, leapfrog_E[i]);
+			outputEnergyToFile(rk4File, rk4_E[i]);
 		}
 
 		eulerFile << "\n" ;
@@ -289,27 +284,18 @@ string makePositionHeading(string processName)
 string makeEnergyHeading(string processName)
 {
 	stringstream string;
-	string << "," << processName << "_T," << processName << "_U," << processName << "_E" ;
+	string << "," << processName << "_E" ;
 	return string.str();
 }
 
 void updateEnergies(int i, double m, double l)
 {
 	//euler
-	euler_T[i] = calculateKineticEnergy(m, l, euler_theta[i], euler_w[i]);
-	euler_U[i] = calculatePotentialEnergy(m, l, euler_theta[i], euler_w[i]);
-	euler_E[i] = euler_T[i] + euler_U[i];
-	//euler_E[i] = pow(euler_theta[i], 2.0) + pow(sqrt(g/l)*euler_w[i], 2.0);
+	euler_E[i] = pow(euler_theta[i], 2.0) + pow(euler_w[i], 2.0);
 	//leapfrog
-	leapfrog_T[i] = calculateKineticEnergy(m, l, leapfrog_theta[i], leapfrog_w[i]);
-	leapfrog_U[i] = calculatePotentialEnergy(m, l, leapfrog_theta[i], leapfrog_w[i]);
-	leapfrog_E[i] = leapfrog_T[i] + leapfrog_U[i];
-	//leapfrog_E[i] = pow(leapfrog_theta[i], 2.0) + pow(sqrt(g/l)*leapfrog_w[i], 2.0);
+	leapfrog_E[i] = pow(leapfrog_theta[i], 2.0) + pow(leapfrog_w[i], 2.0);
 	//RK4
-	rk4_T[i] = calculateKineticEnergy(m, l, rk4_theta[i], rk4_w[i]);
-	rk4_U[i] = calculatePotentialEnergy(m, l, rk4_theta[i], rk4_w[i]);
-	rk4_E[i] = rk4_T[i] + rk4_U[i];
-	//rk4_E[i] = pow(rk4_theta[i], 2.0) + pow(sqrt(g/l)*rk4_w[i], 2.0);
+	rk4_E[i] = pow(rk4_theta[i], 2.0) + pow(rk4_w[i], 2.0);
 }
 
 void outputPositionToFile(ostream& file, double theta, double w)
@@ -317,9 +303,9 @@ void outputPositionToFile(ostream& file, double theta, double w)
 	file << std::scientific << "," << theta << "," << w ;
 }
 
-void outputEnergyToFile(ostream& file, double T, double U, double E)
+void outputEnergyToFile(ostream& file, double E)
 {
-	file << std::scientific << "," << T << "," << U << "," << E;
+	file << std::scientific << "," << E;
 }
 
 void updateEuler(int i, double h, double beta)
@@ -350,25 +336,28 @@ void updateLeapfrog(int i, double h, double beta)
 
 void updateRK4(int i, double h, double beta)
 {
-	k_1 = h * ( rk4_w[i] );
-	k_2 = h * ( rk4_w[i] + 0.5*k_1 );
-	k_3 = h * ( rk4_w[i] + 0.5*k_2 );
-	k_4 = h * ( rk4_w[i] + k_3);
 
-	rk4_theta[i+1] = rk4_theta[i] + (1.0/6.0)*(k_1 + 2*k_2 + 2*k_3 + k_4);
+	k_1[0] = h * ( rk4_w[i] );
+	k_1[1] = -1*h * ( rk4_theta[i] + beta*rk4_w[i] );
 
-	k_1 = -1*h * ( rk4_theta[i] + beta*rk4_w[i] );
-	k_2 = -1*h * ( rk4_theta[i]+0.5*h + beta*(rk4_w[i] + 0.5*k_1) );
-	k_3 = -1*h * ( rk4_theta[i]+0.5*h + beta*(rk4_w[i] + 0.5*k_2) );
-	k_4 = -1*h * ( rk4_theta[i]+h + beta*(rk4_w[i] + k_3) );
+	k_2[0] = h * ( rk4_w[i] + 0.5*k_1[1] );
+	k_2[1] = -1*h * ( rk4_theta[i]+0.5*k_1[0] + beta*(rk4_w[i] + 0.5*k_1[1]) );
 
-	rk4_w[i+1] = rk4_w[i] + (1.0/6.0)*(k_1 + 2*k_2 + 2*k_3 + k_4);
+	k_3[0] = h * ( rk4_w[i] + 0.5*k_2[1] );
+	k_3[1] = -1*h * ( rk4_theta[i]+0.5*k_2[0] + beta*(rk4_w[i] + 0.5*k_2[1]) );
+
+	k_4[0] = h * ( rk4_w[i] + k_3[1]);
+	k_4[1] = -1*h * ( rk4_theta[i]+k_3[0] + beta*(rk4_w[i] + k_3[1]) );
+
+
+	rk4_theta[i+1] = rk4_theta[i] + (1.0/6.0)*(k_1[0] + 2*k_2[0] + 2*k_3[0] + k_4[0]);
+	rk4_w[i+1] = rk4_w[i] + (1.0/6.0)*(k_1[1] + 2*k_2[1] + 2*k_3[1] + k_4[1]);
 }
 
-void updateStabilityTestFile(ostream& file, double E_i, double E_f)
+void updateStabilityTestFile(ostream& file, double E_i, double E_f, int i)
 {
 	double ratio = E_f / E_i;
-	//ratio != ratio checks to see if ratio = nan
+	//ratio != ratio checks to see if ratio == nan
 	if(ratio > 4.0 || ratio != ratio)
 	{
 		file << "," <<  4.0;
@@ -379,6 +368,7 @@ void updateStabilityTestFile(ostream& file, double E_i, double E_f)
 	}
 }
 
+/*
 void stabilityTest(double m, double l, double h) {
 	calculateAnalyticalSolution(h);
 	
@@ -440,6 +430,7 @@ void calculateAnalyticalSolution(double h)
 		anal_theta[i] = euler_theta[0]*cos(i*h);
 	}
 }
+*/
 
 /*
                                                                        
@@ -454,20 +445,6 @@ void calculateAnalyticalSolution(double h)
                           88                                           
                           88 
 */
-
-//calculate kinetic energy
-double calculateKineticEnergy(double m, double l, double theta, double w)
-{
-	double adjustment = sqrt(g/l);
-	w *= adjustment;
-	return 0.5*m*pow(l,2.0)*pow(w,2.0);
-}
-
-//calculate potential energy
-double calculatePotentialEnergy(double m, double l, double theta, double w)
-{
-	return m*g*l*(1 - cos(theta));
-}
 
 //updates the progress display on commandline
 void updateProgress(double progress, char *name)
