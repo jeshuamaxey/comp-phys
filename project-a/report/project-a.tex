@@ -1,24 +1,16 @@
 \documentclass[11pt]{article}
-\usepackage{geometry}                			% See geometry.pdf to learn the layout options.
-\geometry{a4paper}                   	% ... or a4paper or a5paper or ... 
-%\geometry{landscape}                			% Activate for for rotated page geometry
-%\usepackage[parfill]{parskip}    				% Activate to begin paragraphs with an empty line
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
 \usepackage{graphicx}
 \usepackage{amssymb}
 \usepackage{epstopdf}
-
-% --- I added the below packages --- %
-\usepackage{multicol}
-\usepackage{amsmath, amsthm, amssymb}			%allows custom eqn numbering
-\usepackage{gensymb}											%allows \degree
-\usepackage{verbatim}											%allows multi line comments
-\usepackage{color}
-\usepackage{amsmath}
-\usepackage{wrapfig}
-\usepackage{float}
-
-
 \DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+%
+
+\usepackage[nottoc]{tocbibind} %for table of contents
 
 \title{Computational Physics Project A \\ Modelling Single \& Double Pendulum Systems Computationally}
 \author{Joshua Maxey}
@@ -27,27 +19,29 @@
 \begin{document}
 \maketitle
 
-%abstract
-\begin{center}
+\section{Introduction}
 Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
 tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
 quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
 consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
 cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
 proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-\end{center}
 
-%report body
-\begin{multicols}{2}
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-%\section{}
-%\subsection{}
+\tableofcontents
 
-\end{multicols}
+\section{The Single Pendulum}
+\subsection{System Setup \& Parameters}
+\subsection{Equations of Motion}
+%include small angle approx stuff here
+\subsection{A Computer Model for the Single Pendulum System}
+\subsubsection{Euler's Method}
+\subsubsection{The Leapfrog Method}
+%...is a 2nd order RK
+\subsubsection{4th Order Runge-Kutta Method}
+
+\section{The Double Pendulum}
+\subsection{System Setup \& Parameters}
+\subsection{Equations of Motion}
+\subsection{A Computer Model for the Single Pendulum System}
 
 \end{document}  

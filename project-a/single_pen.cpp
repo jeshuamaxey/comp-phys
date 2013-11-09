@@ -82,9 +82,9 @@ int main()
 
 	double h, damping_constant;
 
-	double damping_constant_min = 0.0;
-	double damping_constant_max = 1.5;
-	double damping_constant_step = 1.5;
+	double damping_constant_min = 0.2;
+	double damping_constant_max = 0.2;
+	double damping_constant_step = 0.2;
 
 	int h_range = int( (h_max - h_min)/h_step );
 	int damping_constant_range = int( (damping_constant_max - damping_constant_min)/damping_constant_step );
@@ -98,7 +98,7 @@ int main()
 	{
 		updateProgress(float(i)/h_range, processName);
 		h = h_min + i*h_step;
-		for (int j = 0; j < damping_constant_range; j++)
+		for (int j = 0; j <= damping_constant_range; j++)
 		{
 			damping_constant = damping_constant_min + j*damping_constant_step;
 			//make the call

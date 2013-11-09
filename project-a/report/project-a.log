@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2011.6.18)  7 NOV 2013 12:04
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2011.6.18)  9 NOV 2013 16:27
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -142,188 +142,48 @@ G,.JBIG2,.JB2,.eps]
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 )))
-(/usr/local/texlive/2010/texmf-dist/tex/latex/tools/multicol.sty
-Package: multicol 2008/12/05 v1.6h multicolumn formatting (FMi)
-\c@tracingmulticols=\count91
-\mult@box=\box26
-\multicol@leftmargin=\dimen113
-\c@unbalance=\count92
-\c@collectmore=\count93
-\doublecol@number=\count94
-\multicoltolerance=\count95
-\multicolpretolerance=\count96
-\full@width=\dimen114
-\page@free=\dimen115
-\premulticols=\dimen116
-\postmulticols=\dimen117
-\multicolsep=\skip43
-\multicolbaselineskip=\skip44
-\partial@page=\box27
-\last@line=\box28
-\mult@rightbox=\box29
-\mult@grightbox=\box30
-\mult@gfirstbox=\box31
-\mult@firstbox=\box32
-\@tempa=\box33
-\@tempa=\box34
-\@tempa=\box35
-\@tempa=\box36
-\@tempa=\box37
-\@tempa=\box38
-\@tempa=\box39
-\@tempa=\box40
-\@tempa=\box41
-\@tempa=\box42
-\@tempa=\box43
-\@tempa=\box44
-\@tempa=\box45
-\@tempa=\box46
-\@tempa=\box47
-\@tempa=\box48
-\@tempa=\box49
-\c@columnbadness=\count97
-\c@finalcolumnbadness=\count98
-\last@try=\dimen118
-\multicolovershoot=\dimen119
-\multicolundershoot=\dimen120
-\mult@nat@firstbox=\box50
-\colbreak@box=\box51
-)
-(/usr/local/texlive/2010/texmf-dist/tex/latex/amsmath/amsmath.sty
-Package: amsmath 2000/07/18 v2.13 AMS math features
-\@mathmargin=\skip45
+(/usr/local/texlive/2010/texmf-dist/tex/latex/tocbibind/tocbibind.sty
+Package: tocbibind 2009/12/28 v1.5j extra ToC listings
 
-For additional information on amsmath, use the `?' option.
-(/usr/local/texlive/2010/texmf-dist/tex/latex/amsmath/amstext.sty
-Package: amstext 2000/06/29 v2.01
 
-(/usr/local/texlive/2010/texmf-dist/tex/latex/amsmath/amsgen.sty
-File: amsgen.sty 1999/11/30 v2.0
-\@emptytoks=\toks17
-\ex@=\dimen121
-))
-(/usr/local/texlive/2010/texmf-dist/tex/latex/amsmath/amsbsy.sty
-Package: amsbsy 1999/11/29 v1.2d
-\pmbraise@=\dimen122
-)
-(/usr/local/texlive/2010/texmf-dist/tex/latex/amsmath/amsopn.sty
-Package: amsopn 1999/12/14 v2.01 operator names
-)
-\inf@bad=\count99
-LaTeX Info: Redefining \frac on input line 211.
-\uproot@=\count100
-\leftroot@=\count101
-LaTeX Info: Redefining \overline on input line 307.
-\classnum@=\count102
-\DOTSCASE@=\count103
-LaTeX Info: Redefining \ldots on input line 379.
-LaTeX Info: Redefining \dots on input line 382.
-LaTeX Info: Redefining \cdots on input line 467.
-\Mathstrutbox@=\box52
-\strutbox@=\box53
-\big@size=\dimen123
-LaTeX Font Info:    Redeclaring font encoding OML on input line 567.
-LaTeX Font Info:    Redeclaring font encoding OMS on input line 568.
-\macc@depth=\count104
-\c@MaxMatrixCols=\count105
-\dotsspace@=\muskip10
-\c@parentequation=\count106
-\dspbrk@lvl=\count107
-\tag@help=\toks18
-\row@=\count108
-\column@=\count109
-\maxfields@=\count110
-\andhelp@=\toks19
-\eqnshift@=\dimen124
-\alignsep@=\dimen125
-\tagshift@=\dimen126
-\tagwidth@=\dimen127
-\totwidth@=\dimen128
-\lineht@=\dimen129
-\@envbody=\toks20
-\multlinegap=\skip46
-\multlinetaggap=\skip47
-\mathdisplay@stack=\toks21
-LaTeX Info: Redefining \[ on input line 2666.
-LaTeX Info: Redefining \] on input line 2667.
-)
-(/usr/local/texlive/2010/texmf-dist/tex/latex/amscls/amsthm.sty
-Package: amsthm 2004/08/06 v2.20
-\thm@style=\toks22
-\thm@bodyfont=\toks23
-\thm@headfont=\toks24
-\thm@notefont=\toks25
-\thm@headpunct=\toks26
-\thm@preskip=\skip48
-\thm@postskip=\skip49
-\thm@headsep=\skip50
-\dth@everypar=\toks27
-)
-(/usr/local/texlive/2010/texmf-dist/tex/latex/was/gensymb.sty
-Package: gensymb 2003/07/02 v1.0 (WaS)
-)
-(/usr/local/texlive/2010/texmf-dist/tex/latex/tools/verbatim.sty
-Package: verbatim 2003/08/22 v1.5q LaTeX2e package for verbatim enhancements
-\every@verbatim=\toks28
-\verbatim@line=\toks29
-\verbatim@in@stream=\read1
-)
-(/usr/local/texlive/2010/texmf-dist/tex/latex/graphics/color.sty
-Package: color 2005/11/14 v1.0j Standard LaTeX Color (DPC)
+Package tocbibind Note: The document has section divisions.
 
-(/usr/local/texlive/2010/texmf-dist/tex/latex/latexconfig/color.cfg
-File: color.cfg 2007/01/18 v1.5 color configuration of teTeX/TeXLive
-)
-Package color Info: Driver file: pdftex.def on input line 130.
-)
-(/usr/local/texlive/2010/texmf-dist/tex/latex/wrapfig/wrapfig.sty
-\wrapoverhang=\dimen130
-\WF@size=\dimen131
-\c@WF@wrappedlines=\count111
-\WF@box=\box54
-\WF@everypar=\toks30
-Package: wrapfig 2003/01/31  v 3.6
-)
-(/usr/local/texlive/2010/texmf-dist/tex/latex/float/float.sty
-Package: float 2001/11/08 v1.3d Float enhancements (AL)
-\c@float@type=\count112
-\float@exts=\toks31
-\float@box=\box55
-\@float@everytoks=\toks32
-\@floatcapt=\box56
+
+Package tocbibind Note: Using section or other style headings.
+
 ) (./project-a.aux)
 \openout1 = `project-a.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
 *geometry* verbose mode - [ preamble ] result:
 * driver: pdftex
-* paper: a4paper
+* paper: letterpaper
 * layout: <same size as paper>
 * layoutoffset:(h,v)=(0.0pt,0.0pt)
 * modes: 
-* h-part:(L,W,R)=(89.62709pt, 418.25368pt, 89.6271pt)
-* v-part:(T,H,B)=(101.40665pt, 591.5302pt, 152.11pt)
-* \paperwidth=597.50787pt
-* \paperheight=845.04684pt
-* \textwidth=418.25368pt
-* \textheight=591.5302pt
-* \oddsidemargin=17.3571pt
-* \evensidemargin=17.3571pt
-* \topmargin=-7.86334pt
+* h-part:(L,W,R)=(92.14519pt, 430.00462pt, 92.14519pt)
+* v-part:(T,H,B)=(95.39737pt, 556.47656pt, 143.09605pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=430.00462pt
+* \textheight=556.47656pt
+* \oddsidemargin=19.8752pt
+* \evensidemargin=19.8752pt
+* \topmargin=-13.87262pt
 * \headheight=12.0pt
 * \headsep=25.0pt
 * \topskip=11.0pt
@@ -343,57 +203,52 @@ LaTeX Font Info:    ... okay on input line 27.
 
 (/usr/local/texlive/2010/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count113
-\scratchdimen=\dimen132
-\scratchbox=\box57
-\nofMPsegments=\count114
-\nofMParguments=\count115
-\everyMPshowfont=\toks33
-\MPscratchCnt=\count116
-\MPscratchDim=\dimen133
-\MPnumerator=\count117
-\everyMPtoPDFconversion=\toks34
+\scratchcounter=\count91
+\scratchdimen=\dimen113
+\scratchbox=\box26
+\nofMPsegments=\count92
+\nofMParguments=\count93
+\everyMPshowfont=\toks17
+\MPscratchCnt=\count94
+\MPscratchDim=\dimen114
+\MPnumerator=\count95
+\everyMPtoPDFconversion=\toks18
 )
-LaTeX Info: Redefining \celsius on input line 27.
-Package gensymb Info: Faking symbols for \degree and \celsius on input line 27.
-
-
-
-Package gensymb Warning: Not defining \perthousand.
-
-LaTeX Info: Redefining \ohm on input line 27.
-Package gensymb Info: Using \Omega for \ohm on input line 27.
-
-Package gensymb Warning: Not defining \micro.
-
-LaTeX Font Info:    Try loading font information for U+msa on input line 28.
-(/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsa.fd
+LaTeX Font Info:    Try loading font information for U+msa on input line 20.
+ (/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 28.
+LaTeX Font Info:    Try loading font information for U+msb on input line 20.
 
 (/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
-) [1
+)
+(./project-a.toc)
+\tf@toc=\write3
+\openout3 = `project-a.toc'.
 
-{/usr/local/texlive/2010/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (./proj
-ect-a.aux) ) 
+ [1
+
+{/usr/local/texlive/2010/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2] (./
+project-a.aux) ) 
 Here is how much of TeX's memory you used:
- 3045 strings out of 493747
- 40930 string characters out of 3143546
- 107774 words of memory out of 3000000
- 6284 multiletter control sequences out of 15000+200000
- 8884 words of font info for 34 fonts, out of 3000000 for 9000
+ 2165 strings out of 493747
+ 30174 string characters out of 3143546
+ 89212 words of memory out of 3000000
+ 5438 multiletter control sequences out of 15000+200000
+ 11352 words of font info for 43 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
- 41i,6n,24p,262b,197s stack positions out of 5000i,500n,10000p,200000b,50000s
-</usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmr10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-r12.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr1
-7.pfb>
-Output written on project-a.pdf (1 page, 40348 bytes).
+ 41i,6n,24p,348b,197s stack positions out of 5000i,500n,10000p,200000b,50000s
+</usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts
+/cm/cmbx10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmbx12.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/c
+m/cmr10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/
+cmr12.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cm
+r17.pfb>
+Output written on project-a.pdf (2 pages, 72963 bytes).
 PDF statistics:
- 20 PDF objects out of 1000 (max. 8388607)
- 13 compressed objects within 1 object stream
+ 31 PDF objects out of 1000 (max. 8388607)
+ 21 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
