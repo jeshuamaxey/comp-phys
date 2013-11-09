@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 
-#define simulatedTime 60.0												//simulated time (seconds)
+#define simulatedTime 150.0												//simulated time (seconds)
 #define h_min 0.1
 #define h_max 0.5
 #define h_step 0.1
@@ -18,8 +18,8 @@
 #define runSpecificTests false
 
 #define outputPositions false											//determine what's outputted by the program to file
-#define outputEnergies false											//determine what's outputted by the program to file
-#define outputStabTestEnergies true
+#define outputEnergies true											//determine what's outputted by the program to file
+#define outputStabTestEnergies false
 
 #define useTestDir false
 
@@ -31,6 +31,8 @@ void updateRK4(double, double, double, int);
 double calculateTotalEnergy(double, double, double, double, double, double);
 double calculatePotentialEnergy(double, double, double, double, double, double);
 double calculateKineticEnergy(double, double, double, double, double, double);
+double calculateEnergyHigher(double theta, double psi, double w, double v, double R, double G );
+double calculateEnergyLower(double theta, double psi, double w, double v, double R, double G );
 string makeFileName(double h, double G, double R);
 
 //helper functions
@@ -46,8 +48,8 @@ int main()
 	if(runAutoTests)
 	{
 		double G, R;
-		double G_min = 0;
-		double G_max = 1;
+		double G_min = 1;
+		double G_max = 2;
 		double G_step = 1;
 
 		double R_min = 0.0001;
@@ -179,7 +181,8 @@ void double_pendulum(double h, double G, double R)
 	}
 	if(outputEnergies)
 	{
-		double_pen << ",U,T,E" ;
+		//double_pen << ",U,T,E" ;
+		double_pen << ",E_higher,E_lower" ;
 		
 	}
 	if(outputStabTestEnergies)
@@ -201,11 +204,15 @@ void double_pendulum(double h, double G, double R)
 		}
 		if(outputEnergies)
 		{
+			/*
 			double U = calculatePotentialEnergy(rk4_theta[i], rk4_psi[i], rk4_w[i], rk4_v[i], R, G );
 			double T = calculateKineticEnergy(rk4_theta[i], rk4_psi[i], rk4_w[i], rk4_v[i], R, G );
 			double_pen << std::scientific << "," << U
 																		<< "," << T
 																		<< "," << U+T ;
+			*/
+			double_pen << std::scientific << "," << calculateEnergyHigher(rk4_theta[i], rk4_psi[i], rk4_w[i], rk4_v[i], R, G)
+																		<< "," << calculateEnergyLower(rk4_theta[i], rk4_psi[i], rk4_w[i], rk4_v[i], R, G) ;
 		}
 		//end output for this iteration
 		double_pen << "\n";
@@ -284,6 +291,35 @@ double calculateKineticEnergy(double theta, double psi, double w, double v, doub
 	v *= adjustment;
 
 	return 0.5*pow(l, 2.0)*( m*pow(w, 2.0) + M*( pow(w, 2.0) + pow(v, 2.0) +2*w*v ) );
+}
+
+double calculateEnergyHigher(double theta, double psi, double w, double v, double R, double G )
+{
+	double M = R;
+	double m = 1.0;
+	double l = 1.0;
+
+	//
+	double adjustment = sqrt(g/l);
+
+	w *= adjustment;
+	v *= adjustment;
+
+	return 0.5*g*(m+M)*l*theta*theta + 0.5*pow(l, 2.0)*m*pow(w, 2.0); // -g*l*( m*cos(theta) + M*(cos(theta) + cos(psi)) );
+}
+
+double calculateEnergyLower(double theta, double psi, double w, double v, double R, double G )
+{
+	double M = R;
+	double m = 1.0;
+	double l = 1.0;
+
+	double adjustment = sqrt(g/l);
+
+	w *= adjustment;
+	v *= adjustment;
+
+	return 0.5*pow(l, 2.0)*( M*( pow(w, 2.0) + pow(v, 2.0) +2*w*v ) ) + 0.5*g*M*l*psi*psi;
 }
 
 /*
