@@ -1,12 +1,9 @@
-\contentsline {section}{\numberline {1}Introduction}{1}
+\contentsline {section}{\numberline {1}Introduction}{2}
 \contentsline {section}{\numberline {2}The Single Pendulum}{2}
-\contentsline {subsection}{\numberline {2.1}System Setup \& Parameters}{2}
-\contentsline {subsection}{\numberline {2.2}Equations of Motion}{2}
-\contentsline {subsection}{\numberline {2.3}A Computer Model for the Single Pendulum System}{2}
-\contentsline {subsubsection}{\numberline {2.3.1}Euler's Method}{2}
-\contentsline {subsubsection}{\numberline {2.3.2}The Leapfrog Method}{2}
-\contentsline {subsubsection}{\numberline {2.3.3}4th Order Runge-Kutta Method}{2}
-\contentsline {section}{\numberline {3}The Double Pendulum}{2}
-\contentsline {subsection}{\numberline {3.1}System Setup \& Parameters}{2}
-\contentsline {subsection}{\numberline {3.2}Equations of Motion}{2}
-\contentsline {subsection}{\numberline {3.3}A Computer Model for the Single Pendulum System}{2}
+\contentsline {subsection}{\numberline {2.1}Theory}{2}
+\contentsline {subsection}{\numberline {2.2}Method}{4}
+\contentsline {subsection}{\numberline {2.3}Results \& Discussion}{4}
+\contentsline {section}{\numberline {3}The Double Pendulum}{4}
+\contentsline {subsection}{\numberline {3.1}Theory}{4}
+\contentsline {subsection}{\numberline {3.2}Method}{4}
+\contentsline {subsection}{\numberline {3.3}Results \& Discussion}{4}
