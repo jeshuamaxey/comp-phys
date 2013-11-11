@@ -8,7 +8,7 @@
 
 #define simulatedTime 100.0												//simulated time (seconds)
 #define h_min 0.01
-#define h_max 3.2
+#define h_max 2.0
 #define h_step 0.01
 #define numberOfSteps int(simulatedTime / h_min)	//used for sizing arrays
 #define g 9.81																		//acceleration due to gravity
@@ -20,10 +20,10 @@
 //recommend seeting only one of these to true at a time
 //they all output to the same filestream and while column
 //headings should be correct, there's no guaurantee
-#define outputPositions false											//determine what's outputted by the program to file
+#define outputPositions true											//determine what's outputted by the program to file
 #define outputEnergies false											//determine what's outputted by the program to file
 #define outputIndividualPendulumEnergies false
-#define runStabTest true													//this takes a long time - set to true at your peril (was worth it for the graph though)
+#define runStabTest false													//this takes a long time - set to true at your peril (was worth it for the graph though)
 
 //for debug purposes or if you don't want to overwrite data
 #define useTestDir false
