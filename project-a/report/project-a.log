@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2011.6.18)  11 NOV 2013 10:21
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2011.6.18)  11 NOV 2013 10:30
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -388,16 +388,12 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 [6 <./img/theta_vs_t_gamma=0.png (PNG copy)> <./img/theta_vs_t_gamma=0-2.png (P
 NG copy)>] [7 <./img/energy_ratio_vs_h.png (PNG copy)>] [8]
 
-Package caption Warning: \label before \caption on input line 400.
+Package caption Warning: \label before \caption on input line 389.
 See the caption package documentation for explanation.
 
 
 LaTeX Warning: Reference `fig:dp_energy_G0' on page 9 undefined on input line 2
-86.
-
-
-LaTeX Warning: Reference `fig:dp_e_vs_h' on page 9 undefined on input line 295.
-
+84.
 
 <img/dp/R=0-01_G=0.png, id=48, 816.651pt x 573.1011pt>
 File: img/dp/R=0-01_G=0.png Graphic file (type png)
@@ -410,7 +406,7 @@ File: img/dp/R=1_G=0.png Graphic file (type png)
 File: img/dp/R=100_G=0.png Graphic file (type png)
 
 <use img/dp/R=100_G=0.png>
-Overfull \hbox (4.86665pt too wide) in paragraph at lines 305--325
+Overfull \hbox (4.86665pt too wide) in paragraph at lines 294--314
  []$[]$  $[]$ 
  []
 
@@ -428,7 +424,7 @@ File: img/dp/R=1_G=1.png Graphic file (type png)
 File: img/dp/R=100_G=1.png Graphic file (type png)
 
 <use img/dp/R=100_G=1.png>
-Overfull \hbox (4.86665pt too wide) in paragraph at lines 331--351
+Overfull \hbox (4.86665pt too wide) in paragraph at lines 320--340
  []$[]$  $[]$ 
  []
 
@@ -436,26 +432,17 @@ Overfull \hbox (4.86665pt too wide) in paragraph at lines 331--351
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
-Package caption Warning: \label before \caption on input line 400.
+Package caption Warning: \label before \caption on input line 389.
 See the caption package documentation for explanation.
 
 
 LaTeX Warning: Reference `fig:dp_energy_G0' on page 9 undefined on input line 3
-57.
+46.
 
 [9] [10 <./img/dp/R=0-01_G=0.png (PNG copy)> <./img/dp/R=1_G=0.png (PNG copy)> 
-<./img/dp/R=100_G=0.png (PNG copy)>]
-
-LaTeX Warning: Reference `fig:dp_e_vs_h' on page 11 undefined on input line 372
-.
-
-[11 <./img/dp/R=0-01_G=1.png (PNG copy)> <./img/dp/R=1_G=1.png (PNG copy)> <./i
-mg/dp/R=100_G=1.png (PNG copy)>]
-
-LaTeX Warning: Reference `fig:dp_e_vs_h' on page 12 undefined on input line 383
-.
-
-[12] <img/individual_pens/R=0-01.png, id=76, 816.651pt x 573.1011pt>
+<./img/dp/R=100_G=0.png (PNG copy)>] [11 <./img/dp/R=0-01_G=1.png (PNG copy)> <
+./img/dp/R=1_G=1.png (PNG copy)> <./img/dp/R=100_G=1.png (PNG copy)>] [12]
+<img/individual_pens/R=0-01.png, id=76, 816.651pt x 573.1011pt>
 File: img/individual_pens/R=0-01.png Graphic file (type png)
 
 <use img/individual_pens/R=0-01.png>
@@ -468,7 +455,7 @@ File: img/individual_pens/R=100.png Graphic file (type png)
 
 <use img/individual_pens/R=100.png>
 
-LaTeX Warning: Float too large for page by 64.36165pt on input line 425.
+LaTeX Warning: Float too large for page by 64.36165pt on input line 414.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
@@ -489,10 +476,10 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 
 LaTeX Warning: Reference `data-monitor code' on page 13 undefined on input line
- 465.
+ 454.
 
 
-LaTeX Warning: Reference `jeshua.co' on page 13 undefined on input line 465.
+LaTeX Warning: Reference `jeshua.co' on page 13 undefined on input line 454.
 
 [13] [14 <./img/individual_pens/R=0-01.png (PNG copy)> <./img/individual_pens/R
 =1.png (PNG copy)> <./img/individual_pens/R=100.png (PNG copy)>] [15 <./img/dp/
@@ -506,10 +493,10 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 4100 strings out of 493747
- 60258 string characters out of 3143546
+ 4099 strings out of 493747
+ 60243 string characters out of 3143546
  130482 words of memory out of 3000000
- 7308 multiletter control sequences out of 15000+200000
+ 7307 multiletter control sequences out of 15000+200000
  15048 words of font info for 59 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
  41i,21n,38p,1039b,470s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -530,7 +517,7 @@ ve/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2010/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2010/tex
 mf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on project-a.pdf (16 pages, 1246215 bytes).
+Output written on project-a.pdf (16 pages, 1246188 bytes).
 PDF statistics:
  153 PDF objects out of 1000 (max. 8388607)
  88 compressed objects within 1 object stream

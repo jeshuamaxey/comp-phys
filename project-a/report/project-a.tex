@@ -280,22 +280,11 @@ Satisfied with the RK4 as a means to reliably model oscillating physical systems
 Throughout all simulations, both pendulum lengths $l$ were kept constant, set equal to $g$ \footnote{$g$ = 9.81 $ms^{-1}$, the acceleration due to gravity. This value is arbitrary to the dynamics of the system and served only to provide a sanity check to easily identify oscillation periods as multiples of pi while code was debugged}. Each simulation began with $\theta_{initial}$ = 0.1 and $\psi_{initial}$ = 0 and was run for 100 seconds. A step size of $h$ = 0.01 was used throughout unless explicitly stated otherwise.
 
 To investigate the motion of the pendulums the system was simulated for $R$ values of 0.01, 1.0 and 100 for both the undamped ($G$ = 0) case and the damped case, where $G$ was chosen to equal 1.0.
-%
-%	FUCKING DO THIS
-%
+
 The individual energies of each pendulum were also calculated for each of the aforementioned $R$  values ($G$ = 0) to investigate how energy moved through the system. This data is presented in figure \ref{fig:dp_energy_G0} included in the appendix to this report.
-%
-% FUCKING DO THIS
-%
 
-%
-%	FUCKING DO THIS TOO
-%
+Lastly, the ratio of final and initial energy was recorded for different values of $R$ as the step size was increased. This allowed for qualitative analysis of the scope of application RK4 for double pendulum systems. While detailed quantitative analysis of the variations exhibited in this dataset are beyond the scope of this investigation, this data is presented in figures \ref{fig:dp_e_vs_h_G0} and \ref{fig:dp_e_vs_h_G1} included in the appendix to this report. %THIS GRAPH NEEDS INCLUDING
 
-Lastly, the ratio of final and initial energy was recorded for different values of $R$ as the step size was increased. This allowed for qualitative analysis of the scope of application RK4 for double pendulum systems. While detailed quantitative analysis of the variations exhibited in this dataset are beyond the scope of this investigation, this data is presented in figure \ref{fig:dp_e_vs_h} included in the appendix to this report. %THIS GRAPH NEEDS INCLUDING
-%
-% FUCKING DO THIS TOO
-%
 
 \subsection{Results \& Discussion}
 \subsection*{Motion \& Energy}
@@ -369,7 +358,7 @@ With $R$ = $G$ = 1 the upper pendulum acts much the same as for the $R$ = 0.01 c
 Lastly, with $R$ = 100 both pendulums are underdamped. The slow oscillation of the lower pendulum defines a gradually diminishing envelope for the upper pedulum to oscillate within. Eventually the tension caused by the larger lower mass forces the upper pendulum to swing in unison with the lower one. This is observed by the coming together of the two plotlines, $\theta$ and $\phi$, in figure \ref{fig:dp_R100_G1} from approximately 10 seconds onwards.
 
 \subsubsection*{Qualitative Stability Analysis for the Double Pendulum}
-As for the single pendulum, the undamped double pendulum system was simulated for 100 seconds for different values of $R$. For each value the simulation was run with a step size $0.01 \leq h \leq 4.0$ in increments of 0.01. Figure \ref{fig:dp_e_vs_h} (included in the appendix) shows the step size at which the model becomes unstable for each system configuration. There is an obvious trend in the data which reveals that the model can tolerate larger $h$ values provided $R$ is suitably small, ie provided the top mass is suitably larger than the bottom one.
+As for the single pendulum, the undamped double pendulum system was simulated for 100 seconds for different values of $R$. For each value the simulation was run with a step size $0.01 \leq h \leq 4.0$ in increments of 0.01. Figures \ref{fig:dp_e_vs_h_G0} and \ref{fig:dp_e_vs_h_G1} (included in the appendix) shows the step size at which the model becomes unstable for each system configuration. There is an obvious trend in the data which reveals that the model can tolerate larger $h$ values provided $R$ is suitably small, ie provided the top mass is suitably larger than the bottom one.
 
 This is because when $R \ll 1$, the overwhelming majority of the system's energy is accounted for by the top mass and we only need to model a simple single pendulum to attain sensible, stable energy values. Conversely, for $R \gg 1$, the bottom pendulum must be well modelled by the simulation to produce stable energy values. As this system is more complex than a single pendulum and beyond the scope of application of our small angle RK4 method, the simulation soon becomes unstable at large step sizes.
 
@@ -380,7 +369,7 @@ A single pendulum system was first modelled using three different numerical meth
 
 The motion and energy dynamics of the double pendulum system were investigated next and an understanding of the dynamics of this system was derived from the output of the computational models. Sanity checking results against what common sense would predict allowed us to identify points where our computational model broke down. This model was shown to produce more stable results for smaller $R$ values in the undamped case through stability analysis.
 
-Throughput the course of this project certain further avenues of investigation were identified. The curves in figure \ref{fig:dp_e_vs_h} exhibited a curious tendency to an energy ratio of $\frac{1}{2}$ before becoming unstable and the leapfrog method in the time region where oscillations approach zero and its energy solutions become unstable both present interesting phenomena to extend scope of this report.
+Throughout the course of this project certain further avenues of investigation were identified. The curves in figure \ref{fig:dp_e_vs_h_G0} exhibited a curious tendency to an energy ratio of $\frac{1}{2}$ before becoming unstable and the leapfrog method in the time region where oscillations approach zero and its energy solutions become unstable both present interesting phenomena to extend scope of this report.
 
 \vspace{15pt}
 \hrule
