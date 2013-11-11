@@ -9,7 +9,7 @@
 
 #define simulatedTime 100.0											//simulated time (seconds)
 #define h_min 0.01
-#define h_max 4.0
+#define h_max 0.02
 #define h_step 0.01
 #define numberOfSteps int(simulatedTime / h_min)	//used for sizing arrays
 #define g 9.81																	//acceleration due to gravity
@@ -84,8 +84,8 @@ int main()
 	double h, damping_constant;
 
 	double damping_constant_min = 0.0;
-	double damping_constant_max = 0.2;
-	double damping_constant_step = 0.2;
+	double damping_constant_max = 1.0;
+	double damping_constant_step = 0.1;
 
 	int h_range = int( (h_max - h_min)/h_step );
 	int damping_constant_range = int( (damping_constant_max - damping_constant_min)/damping_constant_step );

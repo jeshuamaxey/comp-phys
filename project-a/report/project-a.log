@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2011.6.18)  11 NOV 2013 05:28
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2011.6.18)  11 NOV 2013 06:44
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -261,22 +261,10 @@ LaTeX Warning: Label `fig:dp_R1_G0' multiply defined.
 LaTeX Warning: Label `sub@fig:dp_R1_G0' multiply defined.
 
 
-LaTeX Warning: Label `fig:dp_R0.01_G0' multiply defined.
+LaTeX Warning: Label `fig:dp_R1_G1' multiply defined.
 
 
-LaTeX Warning: Label `sub@fig:dp_R0.01_G0' multiply defined.
-
-
-LaTeX Warning: Label `fig:dp_R1_G0' multiply defined.
-
-
-LaTeX Warning: Label `sub@fig:dp_R1_G0' multiply defined.
-
-
-LaTeX Warning: Label `fig:dp_R1_G0' multiply defined.
-
-
-LaTeX Warning: Label `sub@fig:dp_R1_G0' multiply defined.
+LaTeX Warning: Label `sub@fig:dp_R1_G1' multiply defined.
 
 )
 \openout1 = `project-a.aux'.
@@ -371,26 +359,12 @@ File: img/theta_vs_t_gamma=0.png Graphic file (type png)
 File: img/theta_vs_t_gamma=0-2.png Graphic file (type png)
 
 <use img/theta_vs_t_gamma=0-2.png>
-Overfull \hbox (4.86665pt too wide) in paragraph at lines 169--183
+Overfull \hbox (4.86665pt too wide) in paragraph at lines 168--182
  []$[]$  $[]$ 
  []
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-
-LaTeX Warning: Reference `e_vs_h' on page 5 undefined on input line 186.
-
-
-Package caption Warning: \label before \caption on input line 167.
-See the caption package documentation for explanation.
-
-
-LaTeX Warning: Reference `fig:sp_motion' on page 5 undefined on input line 188.
-
-
-
-LaTeX Warning: Reference `e_vs_h' on page 5 undefined on input line 188.
 
 
 LaTeX Warning: Command \textless invalid in math mode on input line 188.
@@ -415,6 +389,9 @@ Overfull \hbox (43.00308pt too wide) in paragraph at lines 193--194
  []
 
 
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
 LaTeX Warning: Reference `tab:sp_stabililty' on page 6 undefined on input line 
 198.
 
@@ -422,78 +399,73 @@ LaTeX Warning: Reference `tab:sp_stabililty' on page 6 undefined on input line
 NG copy)>] [7 <./img/energy_ratio_vs_h.png (PNG copy)>] [8]
 
 LaTeX Warning: Reference `fig:dp_energy_G0' on page 9 undefined on input line 2
-85.
+86.
 
 
 LaTeX Warning: Reference `fig:dp_energy_G1' on page 9 undefined on input line 2
-85.
+86.
 
 
-LaTeX Warning: Reference `fig:dp_e_vs_h' on page 9 undefined on input line 294.
+LaTeX Warning: Reference `fig:dp_e_vs_h' on page 9 undefined on input line 295.
 
 
-
-LaTeX Warning: Reference `fig:dp_energy_G0' on page 9 undefined on input line 3
-04.
-
-[9]
-
-LaTeX Warning: Reference `fig:dp_R0.01_G1' on page 10 undefined on input line 3
-13.
-
-
-LaTeX Warning: Reference `fig:dp_R100_G1' on page 10 undefined on input line 31
-7.
-
-
-LaTeX Warning: Reference `fig:dp_e_vs_h' on page 10 undefined on input line 321
-.
-
-<img/dp/R=0-01_G=0.png, id=55, 816.651pt x 573.1011pt>
+<img/dp/R=0-01_G=0.png, id=48, 816.651pt x 573.1011pt>
 File: img/dp/R=0-01_G=0.png Graphic file (type png)
 
 <use img/dp/R=0-01_G=0.png>
-<img/dp/R=1_G=0.png, id=56, 816.651pt x 573.1011pt>
+<img/dp/R=1_G=0.png, id=49, 816.651pt x 573.1011pt>
 File: img/dp/R=1_G=0.png Graphic file (type png)
  <use img/dp/R=1_G=0.png>
-<img/dp/R=100_G=0.png, id=57, 816.651pt x 573.1011pt>
+<img/dp/R=100_G=0.png, id=50, 816.651pt x 573.1011pt>
 File: img/dp/R=100_G=0.png Graphic file (type png)
 
 <use img/dp/R=100_G=0.png>
-Overfull \hbox (4.86665pt too wide) in paragraph at lines 327--347
+Overfull \hbox (4.86665pt too wide) in paragraph at lines 305--325
  []$[]$  $[]$ 
  []
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<img/dp/R=0-01_G=1.png, id=58, 816.651pt x 573.1011pt>
+<img/dp/R=0-01_G=1.png, id=51, 816.651pt x 573.1011pt>
 File: img/dp/R=0-01_G=1.png Graphic file (type png)
 
 <use img/dp/R=0-01_G=1.png>
-<img/dp/R=1_G=1.png, id=59, 816.651pt x 573.1011pt>
+<img/dp/R=1_G=1.png, id=52, 816.651pt x 573.1011pt>
 File: img/dp/R=1_G=1.png Graphic file (type png)
  <use img/dp/R=1_G=1.png>
-<img/dp/R=100_G=1.png, id=60, 816.651pt x 573.1011pt>
+<img/dp/R=100_G=1.png, id=53, 816.651pt x 573.1011pt>
 File: img/dp/R=100_G=1.png Graphic file (type png)
 
 <use img/dp/R=100_G=1.png>
-Overfull \hbox (4.86665pt too wide) in paragraph at lines 352--372
+Overfull \hbox (4.86665pt too wide) in paragraph at lines 331--351
  []$[]$  $[]$ 
  []
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-[10]
 
-LaTeX Warning: Reference `fig:dp_e_vs_h' on page 11 undefined on input line 386
+LaTeX Warning: Reference `fig:dp_energy_G0' on page 9 undefined on input line 3
+57.
+
+[9]
+
+LaTeX Warning: Reference `fig:dp_R100_G1' on page 10 undefined on input line 37
+0.
+
+
+LaTeX Warning: Reference `fig:dp_e_vs_h' on page 10 undefined on input line 374
 .
 
-[11 <./img/dp/R=0-01_G=0.png (PNG copy)> <./img/dp/R=1_G=0.png (PNG copy)> <./i
-mg/dp/R=100_G=0.png (PNG copy)>] [12 <./img/dp/R=0-01_G=1.png (PNG copy)> <./im
-g/dp/R=1_G=1.png (PNG copy)> <./img/dp/R=100_G=1.png (PNG copy)>] [13] [14]
-(./project-a.aux)
+[10 <./img/dp/R=0-01_G=0.png (PNG copy)> <./img/dp/R=1_G=0.png (PNG copy)> <./i
+mg/dp/R=100_G=0.png (PNG copy)>] [11 <./img/dp/R=0-01_G=1.png (PNG copy)> <./im
+g/dp/R=1_G=1.png (PNG copy)> <./img/dp/R=100_G=1.png (PNG copy)>]
+
+LaTeX Warning: Reference `fig:dp_e_vs_h' on page 12 undefined on input line 389
+.
+
+[12] [13] [14] (./project-a.aux)
 
 LaTeX Warning: There were undefined references.
 
@@ -502,13 +474,13 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 4060 strings out of 493747
- 59257 string characters out of 3143546
+ 4062 strings out of 493747
+ 59302 string characters out of 3143546
  130482 words of memory out of 3000000
- 7274 multiletter control sequences out of 15000+200000
+ 7276 multiletter control sequences out of 15000+200000
  15048 words of font info for 59 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
- 41i,21n,38p,1039b,472s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 41i,21n,38p,1039b,470s stack positions out of 5000i,500n,10000p,200000b,50000s
 </usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><
@@ -526,7 +498,7 @@ ve/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2010/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2010/tex
 mf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on project-a.pdf (14 pages, 888249 bytes).
+Output written on project-a.pdf (14 pages, 888146 bytes).
 PDF statistics:
  137 PDF objects out of 1000 (max. 8388607)
  84 compressed objects within 1 object stream
