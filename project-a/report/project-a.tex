@@ -195,7 +195,7 @@ Lastly, RK4 remains stable for zero and non-zero $\beta$ values. In the damped c
 	\label{fig:e_vs_h}
 \end{figure}
 
-The results of the stability analysis are summarised in table \ref{tab:sp_stabililty}.
+The results of the stability analysis are summarised in table \ref{tab:sp_stability}.
 
 \begin{table}[ht]
 	\centering
@@ -283,7 +283,7 @@ To investigate the motion of the pendulums the system was simulated for $R$ valu
 %
 %	FUCKING DO THIS
 %
-The individual energies of each pendulum were also calculated for each of the aforementioned $R$ and $G$ values to investigate how energy moved through the system. This data is presented in figures \ref{fig:dp_energy_G0} and \ref{fig:dp_energy_G1} included in the appendix to this report.
+The individual energies of each pendulum were also calculated for each of the aforementioned $R$  values ($G$ = 0) to investigate how energy moved through the system. This data is presented in figure \ref{fig:dp_energy_G0} included in the appendix to this report.
 %
 % FUCKING DO THIS
 %
@@ -346,7 +346,7 @@ Lastly, the ratio of final and initial energy was recorded for different values 
     \includegraphics[width=\textwidth]{img/dp/R=100_G=1.png}
     \captionsetup{width=0.85\textwidth}
     \caption{$R$ = 100, $G$ = 1}
-    \label{fig:dp_R1_G1}
+    \label{fig:dp_R100_G1}
   \end{subfigure}
   \caption{The motion of the double pendulum system for different mass ratios ($R$ values) in the damped case ($G$ = 1)}
 \end{figure}
@@ -359,8 +359,7 @@ This energy transfer is depicted graphically in figure \ref{fig:dp_energy_G0} wh
 For $R$ = 0, the masses could be said to oscillate \'equally\'; that is to say while the upper oscillation drives the lower to an extent, the amplitudes are within an order of magnitude.
 %%%%%%%%%%%%%%%%%% make a comment about energyc os this comment is shit otherwise %%%%%%%%%%%%%%%%%%%
 
-For $R$ = 100 in the undamped case, the oscillations of the upper pendulum have much less impact on the motion of the lower mass. The upper mass's amplitude remains effectively constant and its position in space at any one time is strongly determined by the much slower oscillation of the lower, heavier bob which applies a sinusoidal envelope to the upper masses oscillation.
-%%%%%%%%%%%%%%%%%%%% ENERGY %%%%%%%%%%%%%%%%% & REF A FIG
+For $R$ = 100 in the undamped case, the oscillations of the upper pendulum have much less impact on the motion of the lower mass. The upper mass's amplitude remains effectively constant and its position in space at any one time is strongly determined by the much slower oscillation of the lower, heavier bob which applies a sinusoidal envelope to the upper masses oscillation. Figure \ref{fig:dp_e_R100_G0} (appendix) shows that the masses transfer a constant amount of energy between eachother. This is manifest as kinetic energy for the most part, inducing a much greater angular frequency ($\alpha \sqrt{E_{kinetic}}$) in the upper bob due to its lower mass.
 
 % MOTION G=1
 Turning to the damped case, setting $G$ = 1 for an $R$ value of 0.01 we see no oscillation at all. The top, more massive, pendulum is over damped and takes a short time to come to rest in its equilibrium position ($\theta$ = 0). Figure \ref{fig:dp_R0.01_G1} shows how the lower mass takes a much longer amount of time to reach its equilibrium position ($\phi$ = 0). This is best described by imagining the pivot connecting the upper mass to the lower rod as being frictionless while the upper pendulum reaches equilibrium and not frictionless (ie damped) thereafter. This is obviously a departure from the physics we intended to model and shows our small angle approximations have broken down for this configuration.
@@ -370,17 +369,12 @@ With $R$ = $G$ = 1 the upper pendulum acts much the same as for the $R$ = 0.01 c
 Lastly, with $R$ = 100 both pendulums are underdamped. The slow oscillation of the lower pendulum defines a gradually diminishing envelope for the upper pedulum to oscillate within. Eventually the tension caused by the larger lower mass forces the upper pendulum to swing in unison with the lower one. This is observed by the coming together of the two plotlines, $\theta$ and $\phi$, in figure \ref{fig:dp_R100_G1} from approximately 10 seconds onwards.
 
 \subsubsection*{Qualitative Stability Analysis for the Double Pendulum}
-% ENERGY RATIO VS H FOR DIFFERING R
 As for the single pendulum, the undamped double pendulum system was simulated for 100 seconds for different values of $R$. For each value the simulation was run with a step size $0.01 \leq h \leq 4.0$ in increments of 0.01. Figure \ref{fig:dp_e_vs_h} (included in the appendix) shows the step size at which the model becomes unstable for each system configuration. There is an obvious trend in the data which reveals that the model can tolerate larger $h$ values provided $R$ is suitably small, ie provided the top mass is suitably larger than the bottom one.
 
 This is because when $R \ll 1$, the overwhelming majority of the system's energy is accounted for by the top mass and we only need to model a simple single pendulum to attain sensible, stable energy values. Conversely, for $R \gg 1$, the bottom pendulum must be well modelled by the simulation to produce stable energy values. As this system is more complex than a single pendulum and beyond the scope of application of our small angle RK4 method, the simulation soon becomes unstable at large step sizes.
 
-%
-%	COULD JUST GO IN CONCLUSION
-%
-% A FURTHER AVENUE OF INVESTIGATION IS WHAT HAPPENS TO LEAPFROG AS OSCILLATION AMP. APPROACHES ZERO
-% WHAT PARAMETERS WOULD BE REQUIRED FOR IT TO PRODUCE MORE STABLE RESULTS?
-%
+The results of this stability analysis are summarised in table \ref{tab:dp_stability} (appendix).
+
 \section{Conclusion}
 A single pendulum system was first modelled using three different numerical methods, Euler's method, Leapfrog and fourth order Runge-Kutta. Following a stability analysis of these three computational models, RK4 was selected as the most appropriate method to model an idealised double pendulum system due to its stable results at large step sizes and applicability to both damped and undamped oscillating systems.
 
@@ -388,70 +382,81 @@ The motion and energy dynamics of the double pendulum system were investigated n
 
 Throughput the course of this project certain further avenues of investigation were identified. The curves in figure \ref{fig:dp_e_vs_h} exhibited a curious tendency to an energy ratio of $\frac{1}{2}$ before becoming unstable and the leapfrog method in the time region where oscillations approach zero and its energy solutions become unstable both present interesting phenomena to extend scope of this report.
 
-\newpage
-\section{Appendix} \label{app:Appendix}
-
-\begin{comment}
-
-\begin{figure}[h!] \label{fig:dp_energy_G0}
-	\vspace{-50pt}
-  \centering
-  \begin{subfigure}[h]{0.7\textwidth}
-    \includegraphics[width=\textwidth]{img/dp/e_R=0-01_G=1.png}
-    \captionsetup{width=0.85\textwidth}
-    \caption{$R$ = 0.01, $G$ = 1}
-    \label{fig:dp_e_R0.01_G0}
-  \end{subfigure}%
-  \\ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
-  \begin{subfigure}[h]{0.7\textwidth}
-    \includegraphics[width=\textwidth]{img/dp/e_R=1_G=1.png}
-    \captionsetup{width=0.85\textwidth}
-    \caption{$R$ = 1, $G$ = 1}
-    \label{fig:dp_e_R1_G0}
-  \end{subfigure}
-  \\ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
-  \begin{subfigure}[h]{0.7\textwidth}
-    \includegraphics[width=\textwidth]{img/dp/e_R=100_G=1.png}
-    \captionsetup{width=0.85\textwidth}
-    \caption{$R$ = 100, $G$ = 1}
-    \label{fig:dp_e_R1_G0}
-  \end{subfigure}
-  \caption{OVERALL CAPTION}
-\end{figure}
-
-\begin{figure}[h!] \label{fig:dp_energy_G1}
-	\vspace{-50pt}
-  \centering
-  \begin{subfigure}[h]{0.7\textwidth}
-    \includegraphics[width=\textwidth]{img/dp/e_R=0-01_G=1.png}
-    \captionsetup{width=0.85\textwidth}
-    \caption{$R$ = 0.01, $G$ = 1}
-    \label{fig:dp_e_R0.01_G0}
-  \end{subfigure}%
-  \\ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
-  \begin{subfigure}[h]{0.7\textwidth}
-    \includegraphics[width=\textwidth]{img/dp/e_R=1_G=1.png}
-    \captionsetup{width=0.85\textwidth}
-    \caption{$R$ = 1, $G$ = 1}
-    \label{fig:dp_e_R1_G0}
-  \end{subfigure}
-  \\ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
-  \begin{subfigure}[h]{0.7\textwidth}
-    \includegraphics[width=\textwidth]{img/dp/e_R=100_G=1.png}
-    \captionsetup{width=0.85\textwidth}
-    \caption{$R$ = 100, $G$ = 1}
-    \label{fig:dp_e_R1_G0}
-  \end{subfigure}
-  \caption{OVERALL CAPTION}
-\end{figure}
-
-\end{comment}
-
-\newpage
-
 \begin{thebibliography}{10}
 \bibitem{dp energy formulae} http://www2.ph.ed.ac.uk/\~egardi/MfP3-Dynamics/Dynamics\_lecture\_16.pdf - Einan Gardi (accessed 10/11/2013)
 \bibitem{project outline} Project A Outline - Robert Kingham - Imperial College London 23/10/2013
+\bibitem{data-monitor code} https://github.com/jeshuamaxey/data-viewer - Joshua Maxey - 10/11/2013
+\bibitem{jeshua.co} http://jeshua.co/labs/data-viewer - Joshua Maxey - (accessed 11/11/2013)
 \end{thebibliography}
+
+\newpage
+\section{Appendix} \label{app:Appendix}
+
+\begin{figure}[h] \label{fig:dp_energy_G0}
+\vspace{-40pt}
+	\caption{The energy of the individual pendulums for a range of $R$ values. The system was simulated for 100s but the plots were truncated at the point they became periodic to examine the finer details of the energy transfers.}
+  \centering
+  \begin{subfigure}[h]{0.65\textwidth}
+    \includegraphics[width=\textwidth]{img/individual_pens/R=0-01.png}
+    \captionsetup{width=0.85\textwidth}
+    \caption{$R$ = 0.01, $G$ = 0}
+    \label{fig:dp_e_R0.01_G0}
+  \end{subfigure}%
+  \\ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+  \begin{subfigure}[h]{0.65\textwidth}
+    \includegraphics[width=\textwidth]{img/individual_pens/R=1.png}
+    \captionsetup{width=0.85\textwidth}
+    \caption{$R$ = 1, $G$ = 0}
+    \label{fig:dp_e_R1_G0}
+  \end{subfigure}
+  \newpage %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+  \begin{subfigure}[h]{0.65\textwidth}
+    \includegraphics[width=\textwidth]{img/individual_pens/R=100.png}
+    \captionsetup{width=0.85\textwidth}
+    \caption{$R$ = 100, $G$ = 0}
+    \label{fig:dp_e_R100_G0}
+  \end{subfigure}
+  \vspace{-50pt}
+\end{figure}
+
+\section*{Stability Analysis of the RK4 Double Pendulum Model}
+
+\begin{figure}[h]
+	\begin{center}
+		\includegraphics[width=\textwidth]{img/dp/e_ratio_vs_h_G=0.png}
+		\caption{The ratio of initial and final energies for different values of $R$ for the undamped double pendulum. As the step size increases we see that systems with smaller $R$ values can be relied upon to produce stable energy solutions smaller step sizes than those with large $R$s. It is important to note that while the solutions are stable, they are not neccessarily accurate. Indeed, it is clear from this plot that the numerical method has a tendency to evaluate $E_{ratio}$ as approximately $\frac{1}{2}$ before becoming unstable.}
+		\label{fig:dp_e_vs_h_G0}
+	\end{center}
+\end{figure}
+
+\begin{figure}[h]
+	\begin{center}
+		\includegraphics[width=\textwidth]{img/dp/e_ratio_vs_h_G=1.png}
+		\caption{The ratio of initial and final energies for different values of $R$ for the damped $G$ = 0, double pendulum. As the step size increases we see that the solutions become unstable far faster than  for the undamped system.}
+		\label{fig:dp_e_vs_h_G1}
+	\end{center}
+\end{figure}
+
+
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{ l c c }
+		& $G=0$ & $G=1$ \\ \hline
+		$R$ & $h_{max}$ & $h_{max}$ \\ \hline
+		0.001 & 2.74 & \text{unstable} \\
+		0.01 & 2.65 & 0.02 \\
+		0.1 & 2.33 & 0.28 \\
+		1.0 & 1.52 & 1.54 \\
+		10 & 0.60 & 0.63 \\
+		100 & 0.19 & 0.2 \\
+		1000 & 0.01 & 0.06 
+	\end{tabular}
+	\caption{The limit of stability for each method (for cases where the methods provide stable solutions). $h_{max}$ is the largest value of $h$ which still produces stable energy solutions.}
+	\label{tab:dp_stability}
+\end{table}
+
+\subsection*{Data Visualiser}
+
+For this project I built a visualisation tool for my data as a stand alone web app. The code for this side project is open source and can be found on GitHub.com \ref{data-monitor code}. It was incredibly useful for understanding the dynamics of the systems being modelled. If you would like to experiment with it for yourself, a live version of the app with sample data produced through the course of this project can be found on my personal website \ref{jeshua.co}.
 
 \end{document}  

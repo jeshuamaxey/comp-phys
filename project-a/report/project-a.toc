@@ -8,5 +8,5 @@
 \contentsline {subsection}{\numberline {3.2}Aims \& Method}{8}
 \contentsline {subsection}{\numberline {3.3}Results \& Discussion}{9}
 \contentsline {section}{\numberline {4}Conclusion}{12}
+\contentsline {section}{References}{12}
 \contentsline {section}{\numberline {5}Appendix}{13}
-\contentsline {section}{References}{14}
