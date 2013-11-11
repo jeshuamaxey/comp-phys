@@ -7,10 +7,10 @@
 #include <sstream>
 #include <string>
 
-#define simulatedTime 50.0											//simulated time (seconds)
+#define simulatedTime 100.0											//simulated time (seconds)
 #define h_min 0.01
 #define h_max 4.0
-#define h_step 0.005
+#define h_step 0.01
 #define numberOfSteps int(simulatedTime / h_min)	//used for sizing arrays
 #define g 9.81																	//acceleration due to gravity
 #define pi atan(1.0)														//mutha fuckin pi man
@@ -24,6 +24,7 @@ using namespace std;
 //returns the number of loop iterations it ran for a particular simulation
 int single_pendulum(double, double);
 void updateStabilityTestFile(ostream&, double, double, int);
+double getRatio(double, double);
 void setInitialValues(double, double);
 
 string makeFileName(double, double, string);
@@ -82,7 +83,7 @@ int main()
 
 	double h, damping_constant;
 
-	double damping_constant_min = 0.2;
+	double damping_constant_min = 0.0;
 	double damping_constant_max = 0.2;
 	double damping_constant_step = 0.2;
 
@@ -92,9 +93,9 @@ int main()
 	//create file to output stability test data to
 	ofstream energyStabTestFile("data/sp/energy_stab_test/data.csv");
 	//set column headings
-	energyStabTestFile << "h,Euler E_final/E_initial,Leapfrog E_final/E_initial,RK4 E_final/E_initial\n";
+	energyStabTestFile << "h,Euler E_final/E_initial,Leapfrog E_final/E_initial,RK4 E_final/E_initial,gamma\n";
 
-	for (int i = 0; i < h_range; i++)
+	for (int i = 0; i <= h_range; i++)
 	{
 		updateProgress(float(i)/h_range, processName);
 		h = h_min + i*h_step;
@@ -110,7 +111,7 @@ int main()
 				updateStabilityTestFile(energyStabTestFile, euler_E[1], euler_E[maxIndex], maxIndex);
 				updateStabilityTestFile(energyStabTestFile, leapfrog_E[1], leapfrog_E[maxIndex], maxIndex);
 				updateStabilityTestFile(energyStabTestFile, rk4_E[1], rk4_E[maxIndex], maxIndex);
-				energyStabTestFile << "\n";
+				energyStabTestFile << "," << damping_constant << "\n";
 			}
 		}
 	}
@@ -140,7 +141,7 @@ int single_pendulum(double h, double damping_constant)
 	double t = 0;																						//time
 	double l = 9.81;																				//length of pendulem in metres
 	double m = 1.0;																					//mass of pendulum in kg
-	double beta = damping_constant/(m* sqrt( g*l ));				//matrix constant
+	double beta = damping_constant;													//matrix constant
 
 	//initial conditions
 	double initial_theta = 0.01;															//angle from vert (starting angle)
@@ -351,7 +352,7 @@ void updateRK4(int i, double h, double beta)
 
 void updateStabilityTestFile(ostream& file, double E_i, double E_f, int i)
 {
-	double ratio = E_f / E_i;
+	double ratio = getRatio(E_f, E_i);
 	//ratio != ratio checks to see if ratio == nan
 	if(ratio > 4.0 || ratio != ratio)
 	{
@@ -361,6 +362,11 @@ void updateStabilityTestFile(ostream& file, double E_i, double E_f, int i)
 	{
 		file << "," <<  ratio;
 	}
+}
+
+double getRatio(double E_f, double E_i)
+{
+	return E_f / E_i;
 }
 
 /*
