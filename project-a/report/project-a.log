@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2011.6.18)  11 NOV 2013 10:16
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2011.6.18)  11 NOV 2013 10:21
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -388,7 +388,7 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 [6 <./img/theta_vs_t_gamma=0.png (PNG copy)> <./img/theta_vs_t_gamma=0-2.png (P
 NG copy)>] [7 <./img/energy_ratio_vs_h.png (PNG copy)>] [8]
 
-Package caption Warning: \label before \caption on input line 388.
+Package caption Warning: \label before \caption on input line 400.
 See the caption package documentation for explanation.
 
 
@@ -436,7 +436,7 @@ Overfull \hbox (4.86665pt too wide) in paragraph at lines 331--351
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
-Package caption Warning: \label before \caption on input line 388.
+Package caption Warning: \label before \caption on input line 400.
 See the caption package documentation for explanation.
 
 
@@ -468,7 +468,7 @@ File: img/individual_pens/R=100.png Graphic file (type png)
 
 <use img/individual_pens/R=100.png>
 
-LaTeX Warning: Float too large for page by 64.36165pt on input line 420.
+LaTeX Warning: Float too large for page by 64.36165pt on input line 425.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
@@ -489,10 +489,10 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 
 LaTeX Warning: Reference `data-monitor code' on page 13 undefined on input line
- 460.
+ 465.
 
 
-LaTeX Warning: Reference `jeshua.co' on page 13 undefined on input line 460.
+LaTeX Warning: Reference `jeshua.co' on page 13 undefined on input line 465.
 
 [13] [14 <./img/individual_pens/R=0-01.png (PNG copy)> <./img/individual_pens/R
 =1.png (PNG copy)> <./img/individual_pens/R=100.png (PNG copy)>] [15 <./img/dp/
@@ -530,7 +530,7 @@ ve/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2010/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2010/tex
 mf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on project-a.pdf (16 pages, 1245929 bytes).
+Output written on project-a.pdf (16 pages, 1246215 bytes).
 PDF statistics:
  153 PDF objects out of 1000 (max. 8388607)
  88 compressed objects within 1 object stream
