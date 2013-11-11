@@ -8,7 +8,7 @@
 #include <string>
 
 #define simulatedTime 100.0											//simulated time (seconds)
-#define h_min 0.01
+#define h_min 0.01															//change these to define the automated tests
 #define h_max 0.02
 #define h_step 0.01
 #define numberOfSteps int(simulatedTime / h_min)	//used for sizing arrays
@@ -45,7 +45,7 @@ void updateEnergies(int, double, double);
 void updateProgress(double, char[]);
 void done();
 
-/********** GLOBAL VARIABLES COS FUCK SCOPE ***********/
+/********** GLOBAL VARIABLES COS TO HELL WITH SCOPE ***********/
 
 //euler variable arrays
 double euler_theta [numberOfSteps];					//stores all theta values
@@ -74,15 +74,17 @@ double anal_theta[numberOfSteps];
 double anal_w[numberOfSteps];
 double err_theta[numberOfSteps];
 
-/***************************************************************/
+/************************* END GLOBAL STUFF *******************/
 
 
 int main()
 {
+	//used for terminal progress bar and not much else
 	char processName[64] = "Single Pendulum";
 
 	double h, damping_constant;
 
+	//change these to define the automated tests
 	double damping_constant_min = 0.0;
 	double damping_constant_max = 1.0;
 	double damping_constant_step = 0.1;
@@ -217,15 +219,18 @@ aa    ]8I 88 88      88      88 888    88 "8a,   ,a8" "8a,   ,a8" 88b,   ,a8"
 		leapfrogFile << "\n" ;
 		rk4File << "\n" ;
 		
+		//update the big global variable arrays with each methods next step
 		updateEuler(i, h, beta);
 		updateLeapfrog(i, h, beta);
 		updateRK4(i, h, beta);
 		updateEnergies(i+1, m, l);
 
 	}
+	//returns the highest index for this loop - used in energy stability tests
 	return loopLimit-1;
 } //end single_pendulum()
 
+//set the initial values for all FDMs
 void setInitialValues(double theta, double w)
 {
 	//set initial values
@@ -304,6 +309,7 @@ void outputEnergyToFile(ostream& file, double E)
 	file << std::scientific << "," << E;
 }
 
+//generate the next variables according to the Euler method
 void updateEuler(int i, double h, double beta)
 {
 	//update euler_theta
@@ -312,6 +318,7 @@ void updateEuler(int i, double h, double beta)
 	euler_w[i+1] = -h*euler_theta[i] + ( 1 - h*beta )*euler_w[i];
 }
 
+//generate the next variables according to the Leapfrog method
 void updateLeapfrog(int i, double h, double beta)
 {
 	if(i==0) //we need to use the euler method to give us some initial values
@@ -330,6 +337,7 @@ void updateLeapfrog(int i, double h, double beta)
 	}
 }
 
+//generate the next variables according to the 4th order runge-kutta method
 void updateRK4(int i, double h, double beta)
 {
 
@@ -364,6 +372,7 @@ void updateStabilityTestFile(ostream& file, double E_i, double E_f, int i)
 	}
 }
 
+//I don't know why this warranted a function of its own but it did ok!
 double getRatio(double E_f, double E_i)
 {
 	return E_f / E_i;

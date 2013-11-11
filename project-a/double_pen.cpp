@@ -46,7 +46,6 @@ void done();
 
 //global debug file stream object
 ofstream debug("data/__debug_log.txt");
-
 //global stab test file stream object (couldn't get it to work if it wasn't global...)
 ofstream stab_test_output("data/dp/_stab_test_results/stab_test.csv");
 //used in stability test - global cos I'm in a hurry here ok?
@@ -137,10 +136,6 @@ int main()
 		} //end h for loop
 
 	}
-
-	
-
-	
 	done();
 	return 0;
 }
@@ -314,14 +309,6 @@ void updateRK4(double h, double R, double G, int i)
 //returns total energy of system
 double calculateTotalEnergy(double theta, double psi, double w, double v, double R, double G )
 {
-	/*
-	double M = R;
-	double m = 1.0;
-	double l = 1.0; //THINK!
-	
-				//Kinetic Energy 								 +		//Potential Energy
-	return 0.5*pow(l, 2.0)*( m*pow(w, 2.0) + M*( pow(w, 2.0) + pow(v, 2.0) +2*w*v ) ) + 0.5*g*( (m+M)*l*w*w + M*l*psi*psi );
-	*/
 	return calculatePotentialEnergy(theta, psi, w, v, R, G )
 					+ calculateKineticEnergy(theta, psi, w, v, R, G );
 }
@@ -339,7 +326,7 @@ double calculatePotentialEnergy(double theta, double psi, double w, double v, do
 	w *= adjustment;
 	v *= adjustment;
 
-	return 0.5*g*( (m+M)*l*theta*theta + M*l*psi*psi ); // -g*l*( m*cos(theta) + M*(cos(theta) + cos(psi)) );
+	return 0.5*g*( (m+M)*l*theta*theta + M*l*psi*psi );
 }
 
 //returns kinetic energy of system
@@ -370,7 +357,7 @@ double calculateEnergyHigher(double theta, double psi, double w, double v, doubl
 	w *= adjustment;
 	v *= adjustment;
 
-	return 0.5*g*(m+M)*l*theta*theta + 0.5*pow(l, 2.0)*m*pow(w, 2.0); // -g*l*( m*cos(theta) + M*(cos(theta) + cos(psi)) );
+	return 0.5*g*(m+M)*l*theta*theta + 0.5*pow(l, 2.0)*m*pow(w, 2.0);
 }
 
 //returns energy of the lower pendulum bob
@@ -387,14 +374,6 @@ double calculateEnergyLower(double theta, double psi, double w, double v, double
 
 	return 0.5*pow(l, 2.0)*( M*( pow(w, 2.0) + pow(v, 2.0) +2*w*v ) ) + 0.5*g*M*l*psi*psi;
 }
-
-/*
-
-	double KE = 0.5*l*l*(m*w*w+M*(w*w+v*v+2.0*w*v));
-    
-  double PE = 0.5*g*( (m+M)*l*w*w + M*l*psi*psi );
-
-*/
 
 /*
                                                                        
