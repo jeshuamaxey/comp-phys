@@ -6,6 +6,8 @@
 #include <ctime>
 #include <sstream>
 #include <string>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_math.h>
 #include "dimensions.cpp"
 
 #define simulatedTime 100.0												//simulated time (seconds)
@@ -21,13 +23,15 @@
 using namespace std;
 
 /****** FUNCTION PROTOTYPES ***********/
+void setupRNG();
 void initialiseSpins();
 void findEquilibrium(double);
 void alignSpins();
 void randomlyDistSpins();
+int randomSpin();
 int randIndex(int);
 
-void updateProgress(double, char[]);
+void updateProgress(double);
 void done();
 
 int spin[N][N];
@@ -36,19 +40,32 @@ int main()
 {
 	double initial_temp = 0.0;
 
+	setupRNG();
 	initialiseSpins();
 	findEquilibrium(initial_temp);
 
+	/*********************************/
 	long int longtime = 100000;
-	char str[64] = "pooing";
-
 	for (int i = 0; i < longtime; ++i)
 	{
-		updateProgress((1.0*i/longtime), str);
+		updateProgress((1.0*i/longtime));
 	}
+	/*********************************/
+
+	done();
 }
 
 /* START ALL FUNCTIONS CALLED FROM main() */
+
+void setupRNG()
+{
+	const gsl_rng_type * T;
+  gsl_rng * r;
+  T = gsl_rng_default;
+  r = gsl_rng_alloc(T);
+  unsigned long seed = 116426264;
+  gsl_rng_set(r,seed);
+}
 
 void initialiseSpins()
 {
@@ -82,10 +99,31 @@ void findEquilibrium(double initial_temp)
 /* END ALL FUNCTIONS CALLED FROM main() */
 
 void alignSpins()
-{}
+{
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; ++j)
+		{
+			spin[i][j] = 1;
+		}
+	}
+}
 
 void randomlyDistSpins()
-{}
+{
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; ++j)
+		{
+			spin[i][j] = randomSpin();
+		}
+	}
+}
+
+int randomSpin()
+{
+	return 1;
+}
 
 int randIndex(int max)
 {
@@ -93,7 +131,7 @@ int randIndex(int max)
 }
 
 //updates the progress display on commandline
-void updateProgress(double progress, char *name)
+void updateProgress(double progress)
 {
 	int width = getTerminalWidth();
 	int progressBarLength = int(progress*width);
@@ -105,11 +143,10 @@ void updateProgress(double progress, char *name)
 		progressBar << "#";
 	}
 	std::cout << "\r" << progressBar.str() << std::flush;
-	//std::cout << "\r"<< "Currently running " << name << " - " << progress << "\t" << int(progress*100) << "%" << std::flush;
 }
 
 //displays done message to terminal
 void done()
 {
-	std::cout << std::fixed << "\r"<< "100\% - all done. Simulated time elapsed: " << simulatedTime << "s\n" << std::flush;
+	std::cout << std::fixed << "\r"<< "\n100\% - all done. Simulated time elapsed: " << simulatedTime << "s\n" << std::flush;
 }
