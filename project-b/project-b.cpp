@@ -17,15 +17,15 @@
 #define N 10																			//there are NxN spins simulated
 
 /****** PROGRAM CONTROL SETTINGS ******/
-#define initSpinsAligned true											//use for starting at low T
-#define initSpinsRandom false											//use for starting at high T
+#define coldStart false														//use for starting at low T
 
 using namespace std;
 
 /****** FUNCTION PROTOTYPES ***********/
-void setupRNG();
+gsl_rng* setupUniformRNG();
 void initialiseSpins();
 void findEquilibrium(double);
+void outputSpinsToFile();
 void alignSpins();
 void randomlyDistSpins();
 int randomSpin();
@@ -35,45 +35,50 @@ void updateProgress(double);
 void done();
 
 int spin[N][N];
+//for gsl rng help see here:
+//http://www.gnu.org/software/gsl/manual/html_node/Random-number-generator-initialization.html#Random-number-generator-initialization
+gsl_rng * r_uni;						//default rng instance
 
 int main()
 {
 	double initial_temp = 0.0;
 
-	setupRNG();
+	
+	r_uni = setupUniformRNG();
 	initialiseSpins();
 	findEquilibrium(initial_temp);
 
 	/*********************************/
-	long int longtime = 100000;
+	long int longtime = 10;
 	for (int i = 0; i < longtime; ++i)
 	{
-		updateProgress((1.0*i/longtime));
+		//updateProgress((1.0*i/longtime));
 	}
 	/*********************************/
-
+	outputSpinsToFile();
 	done();
 }
 
 /* START ALL FUNCTIONS CALLED FROM main() */
 
-void setupRNG()
+gsl_rng* setupUniformRNG()
 {
 	const gsl_rng_type * T;
-  gsl_rng * r;
-  T = gsl_rng_default;
-  r = gsl_rng_alloc(T);
-  unsigned long seed = 116426264;
-  gsl_rng_set(r,seed);
+	gsl_rng * r;
+	T = gsl_rng_default;
+	r = gsl_rng_alloc(T);
+	unsigned long seed = 116426264;
+	gsl_rng_set(r,seed);
+	return r;
 }
 
 void initialiseSpins()
 {
-	if(initSpinsAligned)
+	if(coldStart)
 	{
 		alignSpins();
 	}
-	else if(initSpinsRandom)
+	else
 	{
 		randomlyDistSpins();
 	}
@@ -93,6 +98,21 @@ void findEquilibrium(double initial_temp)
 		s = spin[randIndex(N)][randIndex(N)];
 
 		equilibrium = true;
+	}
+}
+
+void outputSpinsToFile()
+{
+	ofstream spins("data/spins.txt");
+	spins << "X\t0\t1\t2\t3\t4\t5\t6\t7\t8\t9\n";
+	for (int i = 0; i < N; ++i)
+	{
+		spins << i << "\t";
+		for (int j = 0; j < N; ++j)
+		{
+			spins << spin[i][j] << "\t";
+		}
+		spins << "\n";
 	}
 }
 
@@ -122,7 +142,7 @@ void randomlyDistSpins()
 
 int randomSpin()
 {
-	return 1;
+	return gsl_rng_uniform(r_uni) > 0.5 ? 1 : -1 ;
 }
 
 int randIndex(int max)
