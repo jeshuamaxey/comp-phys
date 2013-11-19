@@ -24,6 +24,7 @@ using namespace std;
 /****** FUNCTION PROTOTYPES ***********/
 gsl_rng* setupUniformRNG();
 void initialiseSpins();
+double calcTotalEnergy();
 void findEquilibrium(double);
 void outputSpinsToFile();
 void alignSpins();
@@ -35,6 +36,8 @@ void updateProgress(double);
 void done();
 
 int spin[N][N];
+double total_E;
+double J = 1.0;
 //for gsl rng help see here:
 //http://www.gnu.org/software/gsl/manual/html_node/Random-number-generator-initialization.html#Random-number-generator-initialization
 gsl_rng * r_uni;						//default rng instance
@@ -46,13 +49,14 @@ int main()
 	
 	r_uni = setupUniformRNG();
 	initialiseSpins();
+	total_E = calcTotalEnergy();
 	findEquilibrium(initial_temp);
 
 	/*********************************/
 	long int longtime = 10;
-	for (int i = 0; i < longtime; ++i)
+	for (int c = 0; c < longtime; ++c)
 	{
-		//updateProgress((1.0*i/longtime));
+		//updateProgress((1.0*c/longtime));
 	}
 	/*********************************/
 	outputSpinsToFile();
@@ -84,6 +88,27 @@ void initialiseSpins()
 	}
 }
 
+double calcTotalEnergy()
+{
+	double E = 0.0;
+	for (int x = 0; x < N; ++x)
+	{
+		for (int y = 0; y < N; ++y)
+		{
+			//the modulo division ensures the periodic boundary conditions are met
+			// E += spin[x,y]*spin[(x+1.0)%N, y];
+			// E += spin[x,y]*spin[x, (y+1.0)%N];
+			if(x!=N-2)	E += spin[x,y]*spin[x+1,y];
+			else 				E += spin[x,y]*spin[0, y];
+			if(y!=N-2)	E += spin[x,y]*spin[x,y+1];
+			else 				E += spin[x,y]*spin[x, 0];
+		}
+	}
+	E *= -0.5*J;
+	cout << E << "\n";
+	return E;
+}
+
 void findEquilibrium(double initial_temp)
 {
 	bool equilibrium = false;						//used to keep track of state of equilibrium
@@ -103,14 +128,14 @@ void findEquilibrium(double initial_temp)
 
 void outputSpinsToFile()
 {
-	ofstream spins("data/spins.txt");
+	ofstream spins("data/spins.tsv");
 	spins << "X\t0\t1\t2\t3\t4\t5\t6\t7\t8\t9\n";
-	for (int i = 0; i < N; ++i)
+	for (int x = 0; x < N; ++x)
 	{
-		spins << i << "\t";
-		for (int j = 0; j < N; ++j)
+		spins << x << "\t";
+		for (int y = 0; y < N; ++y)
 		{
-			spins << spin[i][j] << "\t";
+			spins << spin[x][y] << "\t";
 		}
 		spins << "\n";
 	}
@@ -120,22 +145,22 @@ void outputSpinsToFile()
 
 void alignSpins()
 {
-	for (int i = 0; i < N; i++)
+	for (int x = 0; x < N; ++x)
 	{
-		for (int j = 0; j < N; ++j)
+		for (int y = 0; y < N; ++y)
 		{
-			spin[i][j] = 1;
+			spin[x][y] = 1;
 		}
 	}
 }
 
 void randomlyDistSpins()
 {
-	for (int i = 0; i < N; i++)
+	for (int x = 0; x < N; ++x)
 	{
-		for (int j = 0; j < N; ++j)
+		for (int y = 0; y < N; ++y)
 		{
-			spin[i][j] = randomSpin();
+			spin[x][y] = randomSpin();
 		}
 	}
 }
@@ -155,10 +180,9 @@ void updateProgress(double progress)
 {
 	int width = getTerminalWidth();
 	int progressBarLength = int(progress*width);
-	//std::cout << progressBarLength;
 	stringstream progressBar;
 
-	for(int c=0;c<progressBarLength;c++)
+	for(int c = 0; c<progressBarLength; ++c)
 	{
 		progressBar << "#";
 	}
