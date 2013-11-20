@@ -15,16 +15,18 @@
 #define pi 4.0*atan(1.0)													//mutha fuckin pi man
 
 #define N 10																			//there are NxN spins simulated
+#define numberPrevEs 20														//number of previous energies we keep track of to test for equilibrium
 #define beta 0																		// J/(k_b*T) -> 1/(k_b*T) = J*beta
 
 /****** PROGRAM CONTROL SETTINGS ******/
-#define coldStart false														//use for starting at low T
+#define coldStart true														//use for starting at low T
 
 using namespace std;
 
 /****** FUNCTION PROTOTYPES ***********/
 
 void findEquilibrium(double);
+bool atEquilibrium(int, double);
 
 //spin functions
 void initialiseSpins();
@@ -45,13 +47,17 @@ double calcDeltaEnergy(int, int);
 
 //magnetisation functions
 double calcTotalMagnetisation();
+double calcdM(int, int);
 
 //helper functions
 void updateProgress(double);
 void done();
 
+//spin mesh
 int spin[N][N];
+double previousEnergies[numberPrevEs];
 double J = 1.0;
+
 //for gsl rng help see here:
 //http://www.gnu.org/software/gsl/manual/html_node/Random-number-generator-initialization.html#Random-number-generator-initialization
 gsl_rng * r_uni;						//default rng instance
@@ -78,15 +84,17 @@ int main()
 
 void findEquilibrium(double initial_temp)
 {
-	bool equilibrium = false;							//used to keep track of state of equilibrium
-	int x,y;															//the spin coordinates particular loop iteration
+	int equilibrium_count = 0;							//used to keep track of state of equilibrium
+	int x,y,i=0;															//the spin coordinates particular loop iteration
 	double dE;														//the change in energy caused by flipping the spin s
 
 	double	E = calcTotalEnergy(),				//total energy of system
 					M = calcTotalMagnetisation(),	//total magnetisation of system
 					E_av, E_s_av,									//average energy, average square energy
 					S_av, S_s,av;									//average spin, average square spin
-	while(!equilibrium)
+	int max_iterations = 1000;
+
+	while(equilibrium_count != 1)
 	{
 		x = randInt(N);
 		y = randInt(N);
@@ -94,19 +102,65 @@ void findEquilibrium(double initial_temp)
 		if(dE < 0)
 		{
 			flipSpin(x,y);
+
 			E += dE;
+			M += calcdM(x,y);
 		}
 		else
 		{
-			double r = gsl_rng_uniform(r_uni); 			//random number 0 < r < 1
+			double r = gsl_rng_uniform(r_uni); //random number 0 < r < 1
 			if(r < exp(-dE*beta) )
 			{
 				flipSpin(x,y);
+				
 				E += dE;
+				M += calcdM(x,y);
 			}
 		}
+		i++;
+		// updateProgress(1.0*i/max_iterations);
+		//increment count if at equilibrium else reset count to zero
+		equilibrium_count = atEquilibrium(i, E) == true ? equilibrium_count++ : 0;
+	}
+}
 
-		equilibrium = true;
+//returns true if mesh is at equilibrium, false otherwise
+bool atEquilibrium(int i, double E)
+{
+	if(i<numberPrevEs) //we take numberPrevEs iterations at least to fill the previous energies array
+	{
+		previousEnergies[i] = E;
+		return false;
+	} else
+	{
+		//calculate average of last 20 previous energies excluding latest E
+		double total_E = 0.0;
+		for (int c = 0; c < numberPrevEs; ++c)
+		{
+			total_E += previousEnergies[c];
+		}
+		double E_av_old = total_E/numberPrevEs;
+		
+		//calculate average of last 20 previous energies including latest E
+		total_E = total_E - previousEnergies[0] + E;
+		double E_av_new = total_E/numberPrevEs;
+		
+		//calculate percentage change in average energy
+		double pc_change = abs(E_av_old - E_av_new)/E_av_old;
+		if(pc_change < 0.1)
+		{
+			//energy has changed by less than 10% from last time
+			return true;
+		} else
+		{
+			//update previous energies array
+			for (int c = 0; c < numberPrevEs; ++c)
+			{
+				previousEnergies[c] = previousEnergies[c+1];
+			}
+			previousEnergies[numberPrevEs-1] = E;
+			return false;
+		}
 	}
 }
 
@@ -204,11 +258,11 @@ double calcTotalEnergy()
 	{
 		for (int y = 0; y < N; ++y)
 		{
-			E += 0.5*calcSiteEnergy(x,y);
+			E += 0.5*J*calcSiteEnergy(x,y);
 		}
 	}
 	//multiply by factor at front of equation at end because I am an efficient coder LOLJK
-	cout << "Energy: " << E << "\n";
+	//cout << "Energy: " << E << "\n";
 	return E;
 }
 
@@ -251,8 +305,13 @@ double calcTotalMagnetisation()
 	}
 	M *= pow(N, -2.0);
 	//multiply by factor at front of equation at end because I am an efficient coder LOLJK
-	cout << "Magnetisation: " << M << "\n";
+	//cout << "Magnetisation: " << M << "\n";
 	return M;
+}
+
+double calcdM(int x, int y)
+{
+	return 2*spin[x][y]*pow(N, -2.0);
 }
 
 /*
@@ -265,7 +324,7 @@ void updateProgress(double progress)
 	int progressBarLength = int(progress*width);
 	stringstream progressBar;
 
-	for(int c = 0; c<progressBarLength; ++c)
+	for(int c = 0; c < progressBarLength; ++c)
 	{
 		progressBar << "#";
 	}
