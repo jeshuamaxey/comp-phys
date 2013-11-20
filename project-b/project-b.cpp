@@ -12,9 +12,10 @@
 
 #define simulatedTime 100.0												//simulated time (seconds)
 #define g 9.81																		//acceleration due to gravity
-#define pi atan(1.0)															//mutha fuckin pi man
+#define pi 4.0*atan(1.0)													//mutha fuckin pi man
 
 #define N 10																			//there are NxN spins simulated
+#define beta 0																		// J/(k_b*T) -> 1/(k_b*T) = J*beta
 
 /****** PROGRAM CONTROL SETTINGS ******/
 #define coldStart false														//use for starting at low T
@@ -22,21 +23,34 @@
 using namespace std;
 
 /****** FUNCTION PROTOTYPES ***********/
-gsl_rng* setupUniformRNG();
-void initialiseSpins();
-double calcTotalEnergy();
+
 void findEquilibrium(double);
+
+//spin functions
+void initialiseSpins();
 void outputSpinsToFile();
 void alignSpins();
 void randomlyDistSpins();
 int randomSpin();
-int randIndex(int);
+void flipSpin(int, int);
 
+//random number functions
+gsl_rng* setupUniformRNG();
+int randInt(int);
+
+//energy function
+double calcTotalEnergy();
+double calcSiteEnergy(int, int);
+double calcDeltaEnergy(int, int);
+
+//magnetisation functions
+double calcTotalMagnetisation();
+
+//helper functions
 void updateProgress(double);
 void done();
 
 int spin[N][N];
-double total_E;
 double J = 1.0;
 //for gsl rng help see here:
 //http://www.gnu.org/software/gsl/manual/html_node/Random-number-generator-initialization.html#Random-number-generator-initialization
@@ -49,7 +63,6 @@ int main()
 	
 	r_uni = setupUniformRNG();
 	initialiseSpins();
-	total_E = calcTotalEnergy();
 	findEquilibrium(initial_temp);
 
 	/*********************************/
@@ -63,18 +76,43 @@ int main()
 	done();
 }
 
-/* START ALL FUNCTIONS CALLED FROM main() */
-
-gsl_rng* setupUniformRNG()
+void findEquilibrium(double initial_temp)
 {
-	const gsl_rng_type * T;
-	gsl_rng * r;
-	T = gsl_rng_default;
-	r = gsl_rng_alloc(T);
-	unsigned long seed = 116426264;
-	gsl_rng_set(r,seed);
-	return r;
+	bool equilibrium = false;							//used to keep track of state of equilibrium
+	int x,y;															//the spin coordinates particular loop iteration
+	double dE;														//the change in energy caused by flipping the spin s
+
+	double	E = calcTotalEnergy(),				//total energy of system
+					M = calcTotalMagnetisation(),	//total magnetisation of system
+					E_av, E_s_av,									//average energy, average square energy
+					S_av, S_s,av;									//average spin, average square spin
+	while(!equilibrium)
+	{
+		x = randInt(N);
+		y = randInt(N);
+		dE = calcDeltaEnergy(x,y);
+		if(dE < 0)
+		{
+			flipSpin(x,y);
+			E += dE;
+		}
+		else
+		{
+			double r = gsl_rng_uniform(r_uni); 			//random number 0 < r < 1
+			if(r < exp(-dE*beta) )
+			{
+				flipSpin(x,y);
+				E += dE;
+			}
+		}
+
+		equilibrium = true;
+	}
 }
+
+/*
+* SPIN MANIPULATION
+*/
 
 void initialiseSpins()
 {
@@ -85,44 +123,6 @@ void initialiseSpins()
 	else
 	{
 		randomlyDistSpins();
-	}
-}
-
-double calcTotalEnergy()
-{
-	double E = 0.0;
-	for (int x = 0; x < N; ++x)
-	{
-		for (int y = 0; y < N; ++y)
-		{
-			//the modulo division ensures the periodic boundary conditions are met
-			// E += spin[x,y]*spin[(x+1.0)%N, y];
-			// E += spin[x,y]*spin[x, (y+1.0)%N];
-			if(x!=N-2)	E += spin[x,y]*spin[x+1,y];
-			else 				E += spin[x,y]*spin[0, y];
-			if(y!=N-2)	E += spin[x,y]*spin[x,y+1];
-			else 				E += spin[x,y]*spin[x, 0];
-		}
-	}
-	E *= -0.5*J;
-	cout << E << "\n";
-	return E;
-}
-
-void findEquilibrium(double initial_temp)
-{
-	bool equilibrium = false;						//used to keep track of state of equilibrium
-	int s;															//the spin value for a particular loop iteration
-	double dE;													//the change in energy caused by flipping the spin s
-
-	double	E, M,												//total energy of system, magnetisation of system
-					E_av, E_s_av,								//average energy, average square energy
-					S_av, S_s,av;								//average spin, average square spin
-	while(!equilibrium)
-	{
-		s = spin[randIndex(N)][randIndex(N)];
-
-		equilibrium = true;
 	}
 }
 
@@ -140,8 +140,6 @@ void outputSpinsToFile()
 		spins << "\n";
 	}
 }
-
-/* END ALL FUNCTIONS CALLED FROM main() */
 
 void alignSpins()
 {
@@ -170,11 +168,96 @@ int randomSpin()
 	return gsl_rng_uniform(r_uni) > 0.5 ? 1 : -1 ;
 }
 
-int randIndex(int max)
+void flipSpin(int x, int y)
 {
-	return 1;
+	spin[x][y] = -1*spin[x][y];
 }
 
+/*
+*	ENERGY FUNCTIONS
+*/
+
+gsl_rng* setupUniformRNG()
+{
+	const gsl_rng_type * T;
+	gsl_rng * r;
+	T = gsl_rng_default;
+	r = gsl_rng_alloc(T);
+	unsigned long seed = 116426264;
+	gsl_rng_set(r,seed);
+	return r;
+}
+
+int randInt(int max)
+{
+	return floor( gsl_rng_uniform(r_uni)*max );
+}
+
+/*
+*	ENERGY FUNCTIONS
+*/
+double calcTotalEnergy()
+{
+	double E = 0.0;
+	int right, down, left, up;
+	for (int x = 0; x < N; ++x)
+	{
+		for (int y = 0; y < N; ++y)
+		{
+			E += 0.5*calcSiteEnergy(x,y);
+		}
+	}
+	//multiply by factor at front of equation at end because I am an efficient coder LOLJK
+	cout << "Energy: " << E << "\n";
+	return E;
+}
+
+double calcSiteEnergy(int x, int y)
+{
+	double E_contrib = 0.0;
+	//the modulo division ensures the periodic boundary conditions are met
+	int right	= (x+1)%N;
+	int left	= (x+N-1)%N;
+	int down	= (y+1)%N;
+	int up		= (y+N-1)%N;
+	//add neighbour interaction energy to total energy
+	E_contrib += spin[x][y]*spin[right][y];
+	E_contrib += spin[x][y]*spin[x][down];
+	E_contrib += spin[x][y]*spin[left][y];
+	E_contrib += spin[x][y]*spin[x][up];
+
+	return E_contrib *= -J;
+}
+
+double calcDeltaEnergy(int x, int y)
+{
+	return 2.0*calcSiteEnergy(x,y);
+}
+
+/*
+*	MAGNETISATION FUNCTIONS
+*/
+
+double calcTotalMagnetisation()
+{
+	double M = 0.0;
+	int right, down, left, up;
+	for (int x = 0; x < N; ++x)
+	{
+		for (int y = 0; y < N; ++y)
+		{
+			M += spin[x][y];
+		}
+	}
+	M *= pow(N, -2.0);
+	//multiply by factor at front of equation at end because I am an efficient coder LOLJK
+	cout << "Magnetisation: " << M << "\n";
+	return M;
+}
+
+/*
+* HELPER FUNCTIONS
+*/
 //updates the progress display on commandline
 void updateProgress(double progress)
 {
