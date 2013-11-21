@@ -15,7 +15,7 @@
 #define pi 4.0*atan(1.0)													//mutha fuckin pi man
 
 #define N 10																			//there are NxN spins simulated
-#define numberPrevEs 20														//number of previous energies we keep track of to test for equilibrium
+#define numberPrevEs 50														//number of previous energies we keep track of to test for equilibrium
 #define beta 0																		// J/(k_b*T) -> 1/(k_b*T) = J*beta
 
 /****** PROGRAM CONTROL SETTINGS ******/
@@ -55,7 +55,8 @@ void done();
 
 //spin mesh
 int spin[N][N];
-double previousEnergies[numberPrevEs];
+//double previousEnergies[numberPrevEs];						//used in old atEquilibrium function
+double previousEnergies[2][numberPrevEs];
 double J = 1.0;
 
 //for gsl rng help see here:
@@ -64,6 +65,7 @@ gsl_rng * r_uni;						//default rng instance
 
 int main()
 {
+	cout << "\nPROJECT-B.CPP\n=============\n\n";
 	double initial_temp = 0.0;
 
 	
@@ -84,7 +86,8 @@ int main()
 
 void findEquilibrium(double initial_temp)
 {
-	int equilibrium_count = 0;							//used to keep track of state of equilibrium
+	//int equilibrium_count = 0;							//used to keep track of state of equilibrium
+	bool equilibrium = false;
 	int x,y,i=0;															//the spin coordinates particular loop iteration
 	double dE;														//the change in energy caused by flipping the spin s
 
@@ -92,9 +95,9 @@ void findEquilibrium(double initial_temp)
 					M = calcTotalMagnetisation(),	//total magnetisation of system
 					E_av, E_s_av,									//average energy, average square energy
 					S_av, S_s,av;									//average spin, average square spin
-	int max_iterations = 1000;
 
-	while(equilibrium_count != 1)
+	//while(equilibrium_count != 1)
+	while(!equilibrium)
 	{
 		x = randInt(N);
 		y = randInt(N);
@@ -120,13 +123,56 @@ void findEquilibrium(double initial_temp)
 		i++;
 		// updateProgress(1.0*i/max_iterations);
 		//increment count if at equilibrium else reset count to zero
-		equilibrium_count = atEquilibrium(i, E) == true ? equilibrium_count++ : 0;
+		//equilibrium_count = atEquilibrium(i, E) == true ? equilibrium_count++ : 0;
+		equilibrium = atEquilibrium(i, E);
 	}
+	//once equilibrium has been reached
+	cout << "equilibrium found after " << i << " iterations.\n";
+
 }
 
 //returns true if mesh is at equilibrium, false otherwise
 bool atEquilibrium(int i, double E)
 {
+	double pc_diff_max = 0.00001;
+	if(i%(2*numberPrevEs) < numberPrevEs)
+	{
+		previousEnergies[0][i%numberPrevEs] = E;
+	} else
+	{
+		previousEnergies[1][i%numberPrevEs] = E;
+	}
+	if( (i%numberPrevEs == 0) && (i>numberPrevEs) ) 
+	{
+		double	average1 = 0.0, average2 = 0.0;
+		for (int c = 0; c < numberPrevEs; ++c)
+		{
+			average1 += previousEnergies[0][c];
+			average2 += previousEnergies[1][c];
+		}
+		average1 /= numberPrevEs;
+		average2 /= numberPrevEs;
+		double pc_diff = abs((average1 - average2)/average1);							//percentage difference in average energies
+		if(pc_diff < pc_diff_max)
+		{
+			cout 	<< "Equilibrium conditions:\n-----------------------\n";
+			cout 	<< "av_1\t\tav_2\t\tpc_diff\t\tpc_diff_max\tno. prev E.s\n";
+			cout 	<< "-----\t\t-----\t\t-----\t\t-----\t\t-----\t\t\n";
+			cout 	<< average1 << "\t\t"
+						<< average2 << "\t\t"
+						<< pc_diff*100 	<< "%\t\t"
+						<< pc_diff_max*100 << "%\t\t"
+						<< numberPrevEs << "\n\n";
+			return true;
+		} else
+		{
+			return false;
+		}
+	} else
+	{
+		return false;
+	}
+	/*
 	if(i<numberPrevEs) //we take numberPrevEs iterations at least to fill the previous energies array
 	{
 		previousEnergies[i] = E;
@@ -162,6 +208,7 @@ bool atEquilibrium(int i, double E)
 			return false;
 		}
 	}
+	*/
 }
 
 /*
