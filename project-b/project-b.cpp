@@ -49,6 +49,11 @@ double calcDeltaEnergy(int, int);
 double calcTotalMagnetisation();
 double calcdM(int, int);
 
+//output to file/screen
+void initJsonFile();
+void updateJsonFile(int);
+void endJsonFile(int);
+
 //helper functions
 void updateProgress(double);
 void done();
@@ -63,12 +68,13 @@ double J = 1.0;
 //http://www.gnu.org/software/gsl/manual/html_node/Random-number-generator-initialization.html#Random-number-generator-initialization
 gsl_rng * r_uni;						//default rng instance
 
+ofstream json("data/mesh.json");
+
 int main()
 {
 	cout << "\nPROJECT-B.CPP\n=============\n\n";
 	double initial_temp = 0.0;
 
-	
 	r_uni = setupUniformRNG();
 	initialiseSpins();
 	findEquilibrium(initial_temp);
@@ -86,9 +92,11 @@ int main()
 
 void findEquilibrium(double initial_temp)
 {
+	//
+	initJsonFile();
 	//int equilibrium_count = 0;							//used to keep track of state of equilibrium
 	bool equilibrium = false;
-	int x,y,i=0;															//the spin coordinates particular loop iteration
+	int x,y,i=0,i_outputted=0;						//the spin coordinates particular loop iteration
 	double dE;														//the change in energy caused by flipping the spin s
 
 	double	E = calcTotalEnergy(),				//total energy of system
@@ -120,14 +128,20 @@ void findEquilibrium(double initial_temp)
 				M += calcdM(x,y);
 			}
 		}
-		i++;
 		// updateProgress(1.0*i/max_iterations);
 		//increment count if at equilibrium else reset count to zero
 		//equilibrium_count = atEquilibrium(i, E) == true ? equilibrium_count++ : 0;
 		equilibrium = atEquilibrium(i, E);
+		if(i%10000 == 0)
+		{
+			updateJsonFile(i);
+			i_outputted++;
+		}
+		i++;
 	}
 	//once equilibrium has been reached
 	cout << "equilibrium found after " << i << " iterations.\n";
+	endJsonFile(i_outputted);
 
 }
 
@@ -361,6 +375,38 @@ double calcdM(int x, int y)
 	return 2*spin[x][y]*pow(N, -2.0);
 }
 
+/*
+*	OUTPUT TO FILE/SCREEN
+*/
+void initJsonFile()
+{
+	json << "{\n\"mesh\" : [\n";
+}
+void updateJsonFile(int i)
+{
+	stringstream mesh;
+	//mesh << "[";
+	for (int x = 0; x < N; ++x)
+	{
+		mesh << "[";
+		for (int y = 0; y < N; ++y)
+		{
+			mesh << spin[x][y];
+			if(y!=N-1) mesh << ",";
+		}
+		if(x!=N-1) mesh << "],\n\t";
+		else mesh << "]\n";
+	}
+	if(i == 0) json << "[\n\t"<< mesh.str() << "]\n";
+	else json << ",[\n\t"<< mesh.str() << "]\n";
+}
+
+void endJsonFile(int iterations) 
+{
+	json << "],\n\"config\" : {\n";
+	json << "\"iterations\" : " << iterations << ",\n";
+	json << "\"meshSize\" : " << N << "\n}\n}";
+}
 /*
 * HELPER FUNCTIONS
 */
