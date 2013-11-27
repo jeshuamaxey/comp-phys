@@ -16,21 +16,33 @@
 
 #define N 10																			//there are NxN spins simulated
 #define numberPrevEs 50														//number of previous energies we keep track of to test for equilibrium
-#define beta 0																		// J/(k_b*T) -> 1/(k_b*T) = J*beta
+//#define beta 0																		// J/(k_b*T) -> 1/(k_b*T) = J*beta
+#define beta_step 0.001
+#define beta_max 1.0
 
-/****** PROGRAM CONTROL SETTINGS ******/
-#define coldStart true														//use for starting at low T
+/**** PROGRAM CONTROL SETTINGS ********/
+#define coldStart false														//use for starting at low T
 
 using namespace std;
 
-/****** FUNCTION PROTOTYPES ***********/
+/**** SHAMELESS GLOBAL VARIABLES ******/
+double total_E, total_M;
 
+/**** SHAMELESS GLOBAL FILESTREAMS ****/
+ofstream sys_props_file_c("data/sys_props_cold.csv");
+ofstream sys_props_file_h("data/sys_props_hot.csv");
+ofstream json("data/mesh.json");
+
+/**** FUNCTION PROTOTYPES *************/
+
+void simulateToEquilibrium(double, double);
+void simulateSomeMore(double);
+void calculateSystemProperties();
 void findEquilibrium(double);
 bool atEquilibrium(int, double);
 
 //spin functions
 void initialiseSpins();
-void outputSpinsToFile();
 void alignSpins();
 void randomlyDistSpins();
 int randomSpin();
@@ -50,7 +62,9 @@ double calcTotalMagnetisation();
 double calcdM(int, int);
 
 //output to file/screen
-void initJsonFile();
+void outputSystemPropertiesToFile(double);
+void outputSpinsToFile();
+void initJsonFile(double beta);
 void updateJsonFile(int);
 void endJsonFile(int);
 
@@ -60,7 +74,6 @@ void done();
 
 //spin mesh
 int spin[N][N];
-//double previousEnergies[numberPrevEs];						//used in old atEquilibrium function
 double previousEnergies[2][numberPrevEs];
 double J = 1.0;
 
@@ -68,87 +81,113 @@ double J = 1.0;
 //http://www.gnu.org/software/gsl/manual/html_node/Random-number-generator-initialization.html#Random-number-generator-initialization
 gsl_rng * r_uni;						//default rng instance
 
-ofstream json("data/mesh.json");
-
 int main()
 {
 	cout << "\nPROJECT-B.CPP\n=============\n\n";
-	double initial_temp = 0.0;
+	sys_props_file_c << "beta,M (cold),E (cold)\n";
+	sys_props_file_h << "beta,M (hot),E (hot\n";
+	double initial_temp = 0.0, beta;
 
 	r_uni = setupUniformRNG();
 	initialiseSpins();
-	findEquilibrium(initial_temp);
-
-	/*********************************/
-	long int longtime = 10;
-	for (int c = 0; c < longtime; ++c)
+	for (int i = 0; i <= int(beta_max/beta_step); ++i)
 	{
-		//updateProgress((1.0*c/longtime));
+		beta = i*beta_step;
+		simulateToEquilibrium(initial_temp, beta);
+		simulateSomeMore(beta);
+		calculateSystemProperties();
+		outputSystemPropertiesToFile(beta);
+		//updateProgress(float(i*beta_max/beta_step));
 	}
-	/*********************************/
 	outputSpinsToFile();
 	done();
 }
 
-void findEquilibrium(double initial_temp)
+void simulateToEquilibrium(double initial_temp, double beta)
 {
 	//
-	initJsonFile();
-	//int equilibrium_count = 0;							//used to keep track of state of equilibrium
+	initJsonFile(beta);
 	bool equilibrium = false;
-	int x,y,i=0,i_outputted=0;						//the spin coordinates particular loop iteration
-	double dE;														//the change in energy caused by flipping the spin s
+	int i=0, i_outputted=0;							//the spin coordinates particular loop iteration
 
-	double	E = calcTotalEnergy(),				//total energy of system
-					M = calcTotalMagnetisation(),	//total magnetisation of system
-					E_av, E_s_av,									//average energy, average square energy
-					S_av, S_s,av;									//average spin, average square spin
+	total_E = calcTotalEnergy();				//total energy of system
+	total_M = calcTotalMagnetisation();	//total magnetisation of system
 
-	//while(equilibrium_count != 1)
+	//find equilibrium
 	while(!equilibrium)
 	{
-		x = randInt(N);
-		y = randInt(N);
-		dE = calcDeltaEnergy(x,y);
-		if(dE < 0)
-		{
-			flipSpin(x,y);
-
-			E += dE;
-			M += calcdM(x,y);
-		}
-		else
-		{
-			double r = gsl_rng_uniform(r_uni); //random number 0 < r < 1
-			if(r < exp(-dE*beta) )
-			{
-				flipSpin(x,y);
-				
-				E += dE;
-				M += calcdM(x,y);
-			}
-		}
-		// updateProgress(1.0*i/max_iterations);
-		//increment count if at equilibrium else reset count to zero
-		//equilibrium_count = atEquilibrium(i, E) == true ? equilibrium_count++ : 0;
-		equilibrium = atEquilibrium(i, E);
-		if(i%10000 == 0)
+		findEquilibrium(beta);
+		equilibrium = atEquilibrium(i, total_E);
+		/*
+		if(i%10 == 0)
 		{
 			updateJsonFile(i);
 			i_outputted++;
 		}
+		*/
 		i++;
-	}
-	//once equilibrium has been reached
-	cout << "equilibrium found after " << i << " iterations.\n";
-	endJsonFile(i_outputted);
+	}	//end of while loop
 
+	
+	//messages etc.
+	// cout << "equilibrium found after " << i << " iterations.\n";
+	// cout << i_outputted << " iterations outputted to JSON file.\n";
+	endJsonFile(i_outputted);
+}
+
+void simulateSomeMore(double beta)
+{
+	//once equilibrium has been reached we run the simulation
+	//a few more times to [[[WHY?]]]
+	for (int i = 0; i < N*N; ++i)
+	{
+		findEquilibrium(beta);
+	}
+}
+
+void calculateSystemProperties()
+{
+	total_E = calcTotalEnergy();
+	total_M = calcTotalMagnetisation();
+	// E_av, E_s_av,						//average energy, average square energy
+	// S_av, S_s,av;						//average spin, average square spin
+}
+
+void outputSystemPropertiesToFile(double beta)
+{
+	if(coldStart) sys_props_file_c << beta << "," << total_M << "," << total_E << "\n";
+	else 					sys_props_file_h << beta << "," << total_M << "," << total_E << "\n";
+}
+
+void findEquilibrium(double beta)
+{
+	int x = randInt(N);
+	int y = randInt(N);
+	double dE = calcDeltaEnergy(x,y);
+	if(dE < 0)
+	{
+		flipSpin(x,y);
+
+		total_E += dE;
+		total_M += calcdM(x,y);
+	}
+	else
+	{
+		double r = gsl_rng_uniform(r_uni); //random number 0 < r < 1
+		if(r < exp(-dE*beta) )
+		{
+			flipSpin(x,y);
+			
+			total_E += dE;
+			total_M += calcdM(x,y);
+		}
+	}
 }
 
 //returns true if mesh is at equilibrium, false otherwise
 bool atEquilibrium(int i, double E)
 {
-	double pc_diff_max = 0.00001;
+	double pc_diff_max = 0.001;
 	if(i%(2*numberPrevEs) < numberPrevEs)
 	{
 		previousEnergies[0][i%numberPrevEs] = E;
@@ -169,6 +208,7 @@ bool atEquilibrium(int i, double E)
 		double pc_diff = abs((average1 - average2)/average1);							//percentage difference in average energies
 		if(pc_diff < pc_diff_max)
 		{
+			/*
 			cout 	<< "Equilibrium conditions:\n-----------------------\n";
 			cout 	<< "av_1\t\tav_2\t\tpc_diff\t\tpc_diff_max\tno. prev E.s\n";
 			cout 	<< "-----\t\t-----\t\t-----\t\t-----\t\t-----\t\t\n";
@@ -177,6 +217,7 @@ bool atEquilibrium(int i, double E)
 						<< pc_diff*100 	<< "%\t\t"
 						<< pc_diff_max*100 << "%\t\t"
 						<< numberPrevEs << "\n\n";
+			*/
 			return true;
 		} else
 		{
@@ -186,43 +227,6 @@ bool atEquilibrium(int i, double E)
 	{
 		return false;
 	}
-	/*
-	if(i<numberPrevEs) //we take numberPrevEs iterations at least to fill the previous energies array
-	{
-		previousEnergies[i] = E;
-		return false;
-	} else
-	{
-		//calculate average of last 20 previous energies excluding latest E
-		double total_E = 0.0;
-		for (int c = 0; c < numberPrevEs; ++c)
-		{
-			total_E += previousEnergies[c];
-		}
-		double E_av_old = total_E/numberPrevEs;
-		
-		//calculate average of last 20 previous energies including latest E
-		total_E = total_E - previousEnergies[0] + E;
-		double E_av_new = total_E/numberPrevEs;
-		
-		//calculate percentage change in average energy
-		double pc_change = abs(E_av_old - E_av_new)/E_av_old;
-		if(pc_change < 0.1)
-		{
-			//energy has changed by less than 10% from last time
-			return true;
-		} else
-		{
-			//update previous energies array
-			for (int c = 0; c < numberPrevEs; ++c)
-			{
-				previousEnergies[c] = previousEnergies[c+1];
-			}
-			previousEnergies[numberPrevEs-1] = E;
-			return false;
-		}
-	}
-	*/
 }
 
 /*
@@ -378,7 +382,7 @@ double calcdM(int x, int y)
 /*
 *	OUTPUT TO FILE/SCREEN
 */
-void initJsonFile()
+void initJsonFile(double beta)
 {
 	json << "{\n\"mesh\" : [\n";
 }
