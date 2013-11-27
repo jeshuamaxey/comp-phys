@@ -14,19 +14,21 @@
 #define g 9.81																		//acceleration due to gravity
 #define pi 4.0*atan(1.0)													//mutha fuckin pi man
 
-#define N 10																			//there are NxN spins simulated
+#define N 100																			//there are NxN spins simulated
 #define numberPrevEs 50														//number of previous energies we keep track of to test for equilibrium
 //#define beta 0																		// J/(k_b*T) -> 1/(k_b*T) = J*beta
 #define beta_step 0.001
 #define beta_max 1.0
 
 /**** PROGRAM CONTROL SETTINGS ********/
-#define coldStart false														//use for starting at low T
+#define coldStart true														//use for starting at low T
 
 using namespace std;
 
 /**** SHAMELESS GLOBAL VARIABLES ******/
 double total_E, total_M;
+double E_av, E_s_av;						//average energy, average square energy
+double S_av, S_s_av;						//average spin, average square spin
 
 /**** SHAMELESS GLOBAL FILESTREAMS ****/
 ofstream sys_props_file_c("data/sys_props_cold.csv");
@@ -35,8 +37,8 @@ ofstream json("data/mesh.json");
 
 /**** FUNCTION PROTOTYPES *************/
 
-void simulateToEquilibrium(double, double);
-void simulateSomeMore(double);
+void simulateToEquilibrium(double);
+void simulateXTimes(double, int);
 void calculateSystemProperties();
 void findEquilibrium(double);
 bool atEquilibrium(int, double);
@@ -48,16 +50,23 @@ void randomlyDistSpins();
 int randomSpin();
 void flipSpin(int, int);
 
+int calcTotalSpin();
+int calcAverageSpin();
+int calcTotalSpinSquared();
+int calcAverageSpinSquared();
+
 //random number functions
 gsl_rng* setupUniformRNG();
 int randInt(int);
 
 //energy function
+double calcAverageEnergy();
 double calcTotalEnergy();
 double calcSiteEnergy(int, int);
 double calcDeltaEnergy(int, int);
 
 //magnetisation functions
+double calcAverageMagnetisation();
 double calcTotalMagnetisation();
 double calcdM(int, int);
 
@@ -86,24 +95,25 @@ int main()
 	cout << "\nPROJECT-B.CPP\n=============\n\n";
 	sys_props_file_c << "beta,M (cold),E (cold)\n";
 	sys_props_file_h << "beta,M (hot),E (hot\n";
-	double initial_temp = 0.0, beta;
+	
+	double beta;
 
 	r_uni = setupUniformRNG();
 	initialiseSpins();
 	for (int i = 0; i <= int(beta_max/beta_step); ++i)
 	{
 		beta = i*beta_step;
-		simulateToEquilibrium(initial_temp, beta);
-		simulateSomeMore(beta);
+		simulateToEquilibrium(beta);
+		simulateXTimes(beta, N*N);
 		calculateSystemProperties();
 		outputSystemPropertiesToFile(beta);
-		//updateProgress(float(i*beta_max/beta_step));
+		updateProgress(float(i*beta_step/beta_max));
 	}
 	outputSpinsToFile();
 	done();
 }
 
-void simulateToEquilibrium(double initial_temp, double beta)
+void simulateToEquilibrium(double beta)
 {
 	//
 	initJsonFile(beta);
@@ -135,11 +145,11 @@ void simulateToEquilibrium(double initial_temp, double beta)
 	endJsonFile(i_outputted);
 }
 
-void simulateSomeMore(double beta)
+void simulateXTimes(double beta, int count)
 {
 	//once equilibrium has been reached we run the simulation
 	//a few more times to [[[WHY?]]]
-	for (int i = 0; i < N*N; ++i)
+	for (int i = 0; i < count; ++i)
 	{
 		findEquilibrium(beta);
 	}
@@ -149,14 +159,18 @@ void calculateSystemProperties()
 {
 	total_E = calcTotalEnergy();
 	total_M = calcTotalMagnetisation();
-	// E_av, E_s_av,						//average energy, average square energy
-	// S_av, S_s,av;						//average spin, average square spin
+	E_av 		= calcAverageEnergy();
+	E_s_av 	= 0.0;
+	S_av 		= calcAverageSpin();
+	S_s_av	= calcAverageSpinSquared();
 }
 
 void outputSystemPropertiesToFile(double beta)
 {
-	if(coldStart) sys_props_file_c << beta << "," << total_M << "," << total_E << "\n";
-	else 					sys_props_file_h << beta << "," << total_M << "," << total_E << "\n";
+	if(coldStart)
+		sys_props_file_c << beta << "," << total_M << "," << total_E << "\n";
+	else 				
+		sys_props_file_h << beta << "," << total_M << "," << total_E << "\n";
 }
 
 void findEquilibrium(double beta)
@@ -292,6 +306,42 @@ void flipSpin(int x, int y)
 	spin[x][y] = -1*spin[x][y];
 }
 
+int calcTotalSpin()
+{
+	int s = 0;
+	for (int x = 0; x < N; ++x)
+	{
+		for (int y = 0; y < N; ++y)
+		{
+			s += spin[x][y];
+		}
+	}
+	return s;
+}
+
+int calcAverageSpin()
+{
+	return calcTotalSpin()/N;
+}
+
+int calcTotalSpinSquared()
+{
+	int s = 0;
+	for (int x = 0; x < N; ++x)
+	{
+		for (int y = 0; y < N; ++y)
+		{
+			s += pow(spin[x][y], 2.0);
+		}
+	}
+	return s;
+}
+
+int calcAverageSpinSquared()
+{
+	return calcTotalSpinSquared()/N;
+}
+
 /*
 *	ENERGY FUNCTIONS
 */
@@ -315,6 +365,11 @@ int randInt(int max)
 /*
 *	ENERGY FUNCTIONS
 */
+double calcAverageEnergy()
+{
+	return calcTotalEnergy()/N;
+}
+
 double calcTotalEnergy()
 {
 	double E = 0.0;
@@ -323,12 +378,11 @@ double calcTotalEnergy()
 	{
 		for (int y = 0; y < N; ++y)
 		{
-			E += 0.5*J*calcSiteEnergy(x,y);
+			E += calcSiteEnergy(x,y);
 		}
 	}
 	//multiply by factor at front of equation at end because I am an efficient coder LOLJK
-	//cout << "Energy: " << E << "\n";
-	return E;
+	return E *= -0.5;
 }
 
 double calcSiteEnergy(int x, int y)
@@ -345,7 +399,7 @@ double calcSiteEnergy(int x, int y)
 	E_contrib += spin[x][y]*spin[left][y];
 	E_contrib += spin[x][y]*spin[x][up];
 
-	return E_contrib *= -J;
+	return E_contrib *= J;
 }
 
 double calcDeltaEnergy(int x, int y)
@@ -357,10 +411,14 @@ double calcDeltaEnergy(int x, int y)
 *	MAGNETISATION FUNCTIONS
 */
 
+double calcAverageMagnetisation()
+{
+	return calcTotalMagnetisation()/N;
+}
+
 double calcTotalMagnetisation()
 {
 	double M = 0.0;
-	int right, down, left, up;
 	for (int x = 0; x < N; ++x)
 	{
 		for (int y = 0; y < N; ++y)
@@ -425,11 +483,21 @@ void updateProgress(double progress)
 	{
 		progressBar << "#";
 	}
+	for(int c = 0; c < width-progressBarLength; ++c)
+	{
+		progressBar << " ";
+	}
+	//std::cout << "\rRunning: " << progress*100 << "\%\n" << std::flush;
 	std::cout << "\r" << progressBar.str() << std::flush;
 }
 
 //displays done message to terminal
 void done()
 {
-	std::cout << std::fixed << "\r"<< "\n100\% - all done. Simulated time elapsed: " << simulatedTime << "s\n" << std::flush;
+	std::cout.precision(3);
+	std::cout << std::fixed << "\r\n"
+						<< "Mesh dimensions: " << N << "x" << N << "\n"
+						<< "Beta range explored: 0 - " << beta_max << " in steps of " << beta_step << "\n"
+						<< "Start: " << (coldStart ? "Cold" : "Hot") << "\n";
+						//<< std::flush;
 }
