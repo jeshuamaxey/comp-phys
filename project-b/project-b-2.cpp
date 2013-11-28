@@ -1,3 +1,4 @@
+// C/C++ header files
 #include <cstdlib>
 #include <math.h>
 #include <iostream>
@@ -6,24 +7,17 @@
 #include <ctime>
 #include <sstream>
 #include <string>
+// GNU Scientific Library header files
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_math.h>
+// my own header files
+#include "config.h"
 #include "dimensions.cpp"
 
 #define simulatedTime 100.0												//simulated time (seconds)
 #define g 9.81																		//acceleration due to gravity
 #define pi 4.0*atan(1.0)													//mutha fuckin pi man
 #define k_b 1.3806488e-23
-
-#define N 100																			//there are NxN spins simulated
-#define numberPrevEs 500														//number of previous energies we keep track of to test for equilibrium													
-#define beta_step 0.01
-#define beta_max 1.0
-
-#define outputE false
-#define outputM false
-#define outputSHC false
-#define outputMS true
 
 using namespace std;
 
@@ -80,12 +74,12 @@ double calcdM(int, int, int);
 double calcSpecificHeatCapacity(double, int);
 double calcMagneticSusceptibility(double, int);
 
-// //output to file/screen
+//output to file/screen
 void initOutputFile();
 void outputSystemPropertiesToFile(double);
 
-// //helper functions
-void updateProgress(double); 								//expects a fraction of completion
+//helper functions
+void updateProgress(double); 	//expects a fraction of completion
 void done();
 
 
@@ -117,12 +111,10 @@ void simulateToEquilibrium(double beta)
 	bool equilibrium[2] = {false, false};
 	int i=0, i_outputted=0;									//the spin coordinates particular loop iteration
 
-	/*
 	total_E[h] = calcTotalEnergy(h);				//total energy of system
 	total_M[h] = calcTotalMagnetisation(h);	//total magnetisation of system
 	total_E[c] = calcTotalEnergy(c);				//total energy of system
 	total_M[c] = calcTotalMagnetisation(c);	//total magnetisation of system
-	*/
 
 	//find equilibrium from hot start
 	while(!equilibrium[h])
@@ -200,7 +192,7 @@ void findEquilibrium(double beta, int t)
 //returns true if mesh is at equilibrium, false otherwise
 bool atEquilibrium(int i, double E, int t)
 {
-	double pc_diff_max = 0.0001;
+	//double pc_diff_max = 0.0001;
 
 	if(i%(2*numberPrevEs) < numberPrevEs)
 	{
@@ -468,5 +460,11 @@ void done()
 	std::cout << std::fixed << "\r\n"
 						<< "Mesh dimensions: " << N << "x" << N << "\n"
 						<< "Beta range explored: 0 - " << beta_max << " in steps of " << beta_step << "\n"
-						<< "Outputted: " << (outputE ? "Energy, " : "") << (outputM ? "Magnetisation, " : "") << "\n";
+						<< "Property\t\tOutputted\n"
+						<< "======================================\n"
+						<< "Energy\t\t\t" << (outputE ? "YES\n" : "NO\n")
+						<< "Magnetisation\t\t" << (outputM ? "YES\n" : "NO\n")
+						<< "Specific Heat Capacity\t" << (outputSHC ? "YES\n" : "NO\n")
+						<< "Magnetic Susceptibility\t" << (outputMS ? "YES\n" : "NO\n")
+						<< "======================================\n";
 }
