@@ -18,3 +18,5 @@ Project A involves evaluating different finite difference methods for the proble
 ### Aside
 
 I will endeavour to include the instructional PDF files I used while conducting the course in the appropriate directories in a future commit. They help in understanding the problem being solved, but you will require a firm understanding in numerical methods, differential calculus and finite difference approximations to solve the problems yourself.
+
+Also included are small bash scripts to setup helpful aliases for compiling the code and updating the file listing used by the data-viewer. To execute these run `$ source ./aliases.sh` from either `project-*` directory.
