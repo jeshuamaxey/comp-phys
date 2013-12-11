@@ -104,11 +104,11 @@ double calcTotalMicroMagnetisation(int);
 double calcdM(int, int, int);
 double calcTotalMacroMagnetisation(double, int);
 
-//
+//specific heat capacity functions
 double calcSpecificHeatCapacity(double, int, int);
 double calcMeanSpecificHeatCapacity(double, int);
 
-//
+//magnetic susceptibility functions
 double calcMagneticSusceptibility(double, int, int);
 double calcMeanMagneticSusceptibility(double, int);
 
@@ -460,7 +460,7 @@ double calcAverageEnergy(int t)
 	{
 		E += totalMeshEnergiesPastEquilibrium[t][i];
 	}
-	return E/simulationsPastEquilibrium;
+	return E/float(simulationsPastEquilibrium);
 }
 
 double calcAverageEnergySquared(int t)
@@ -470,7 +470,7 @@ double calcAverageEnergySquared(int t)
 	{
 		E += pow(totalMeshEnergiesPastEquilibrium[t][i], 2.0);
 	}
-	return E/simulationsPastEquilibrium;
+	return E/float(simulationsPastEquilibrium);
 }
 
 double calcTotalMicroEnergy(int t, double mu_B)
@@ -534,9 +534,8 @@ double calcTotalMicroMagnetisation(int t)
 			M += mesh[t][x][y];
 		}
 	}
-	M *= pow(N, -2.0);
 	//multiply by factor at front of equation at end because I am an efficient coder LOLJK
-	//cout << "Magnetisation: " << M << "\n";
+	M *= pow(N, -2.0);
 	return M;
 }
 
@@ -561,6 +560,7 @@ double calcTotalMacroMagnetisation(double beta, int t)
 double calcSpecificHeatCapacity(double beta, int t, int a)
 {
 	return pow(N, -2.0) * ( (k_b*pow(beta,2.0)) / pow(J,2.0) ) * ( E_s_av[a][t] - pow(E_av[a][t], 2.0));
+	//return ( E_s_av[a][t] - pow(E_av[a][t], 2.0));
 }
 
 double calcMeanSpecificHeatCapacity(double beta, int t)
