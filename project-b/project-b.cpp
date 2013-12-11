@@ -186,6 +186,8 @@ void simulateNonZeroB(ostream& outputFile, int a)
 		beta = beta_min+(i*beta_step);
 		//run simulation under these conditions
 		runSimulation(beta, mu_B, outputFile, a, 1);
+		//
+		updateProgress(float(i)/(beta_max/beta_step), a);
 	}
 }
 
@@ -200,6 +202,8 @@ void simulateVaryingB(ostream& outputFile, int a)
 		mu_B = mu_B_min+(i*mu_B_step);
 		//run simulation under these conditions
 		runSimulation(beta, mu_B, outputFile, a, 2);
+		//
+		updateProgress(float(i)/(mu_B_max/mu_B_step), a);
 	}
 }
 
