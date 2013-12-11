@@ -50,9 +50,9 @@
 /*********************************************
 *	DETERMINE WHAT THE PROGRAM OUTPUTS
 **********************************************/
-#define outputE false
+#define outputE true
 #define outputM false
-#define outputSHC true
+#define outputSHC false
 #define outputMS false
 
 #define outputOneOverBeta true //used to affect the type of plot

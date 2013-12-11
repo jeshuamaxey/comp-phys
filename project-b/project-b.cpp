@@ -116,7 +116,7 @@ double calcMeanMagneticSusceptibility(double, int);
 void outputSystemPropertiesToFile(double, double, ostream&, int);
 
 //helper functions
-void updateProgress(double, int, int); 	//expects a fraction of completion
+void updateProgress(double, int); 	//expects a fraction of completion
 void done();
 
 
@@ -151,8 +151,6 @@ int main()
 		if(simulateForZeroB) simulateZeroB(zeroBFile, a);
 		if(simulateForNonZeroB) simulateNonZeroB(nonZeroBFile, a);
 		if(simulateForVaryingB) simulateVaryingB(varyingZeroBFile, a);
-		//
-		updateProgress(float(a)/float(numberOfSeeds), a, 0);
 	}
 
 	//job up!
@@ -171,6 +169,8 @@ void simulateZeroB(ostream& outputFile, int a)
 		beta = beta_min+(i*beta_step);
 		//run simulation under these conditions
 		runSimulation(beta, mu_B, outputFile, a, 0);
+		//
+		updateProgress(float(i)/(beta_max/beta_step), a);
 	}
 }
 
@@ -210,8 +210,6 @@ void runSimulation(double beta, double mu_B, ostream& outputFile, int a, int nam
 	calculateSystemProperties(a, beta);
 	//on last iteration of loop output to file
 	if(a==numberOfSeeds-1) outputSystemPropertiesToFile(beta, mu_B, outputFile, a);
-
-	//updateProgress(float((beta-beta_min)/beta_max), a, nameIndex);
 }
 
 void simulateToEquilibrium(double beta, double mu_B)
@@ -560,7 +558,6 @@ double calcTotalMacroMagnetisation(double beta, int t)
 double calcSpecificHeatCapacity(double beta, int t, int a)
 {
 	return pow(N, -2.0) * ( (k_b*pow(beta,2.0)) / pow(J,2.0) ) * ( E_s_av[a][t] - pow(E_av[a][t], 2.0));
-	//return ( E_s_av[a][t] - pow(E_av[a][t], 2.0));
 }
 
 double calcMeanSpecificHeatCapacity(double beta, int t)
@@ -614,8 +611,6 @@ void outputSystemPropertiesToFile(double beta, double mu_B, ostream& outputFile,
 	else 									outputFile	<< beta;
 	if(outputE) 	outputFile << "," << calcMeanAverageEnergy(c) << "," << calcMeanAverageEnergy(h);
 	if(outputM) 	outputFile << "," << calcTotalMacroMagnetisation(beta, c) << "," << calcTotalMacroMagnetisation(beta, h);
-	//if(outputSHC) outputFile << "," << calcSpecificHeatCapacity(beta, c, a) << "," << calcSpecificHeatCapacity(beta, h, a);
-	//if(outputMS) 	outputFile << "," << calcMagneticSusceptibility(beta, c, a) << "," << calcMagneticSusceptibility(beta, h, a);
 	if(outputSHC) outputFile << "," << calcMeanSpecificHeatCapacity(beta, c) << "," << calcMeanSpecificHeatCapacity(beta, h);
 	if(outputMS) 	outputFile << "," << calcMeanMagneticSusceptibility(beta, c) << "," << calcMeanMagneticSusceptibility(beta, h);
 	outputFile << "\n";
@@ -625,37 +620,23 @@ void outputSystemPropertiesToFile(double beta, double mu_B, ostream& outputFile,
 * HELPER FUNCTIONS
 */
 //updates the progress display on commandline
-void updateProgress(double progress, int a, int nameIndex)
+void updateProgress(double progress, int a)
 {
 	int width = getTerminalWidth();
+	progress /= float(numberOfSeeds);
+	progress += float(a)/float(numberOfSeeds);
 	int progressBarLength = int(progress*width);
 	stringstream progressBar;
 
 	for(int c = 0; c < progressBarLength; ++c)
 	{
-		progressBar << "#";
+		progressBar << a;
 	}
 	for(int c = 0; c < width-progressBarLength; ++c)
 	{
 		progressBar << " ";
 	}
 	std::cout << "\r" << progressBar.str() << std::flush;
-	// stringstream outputStream;
-	// string processName;
-	// switch(nameIndex)
-	// {
-	// 	case 0:
-	// 		processName = 'Simulating zero B';
-	// 		break;
-	// 	case 1:
-	// 		processName = 'Simulating non-zero B';
-	// 		break;
-	// 	case 2:
-	// 		processName = 'Simulating varying B';
-	// 		break;
-	// }
-	// outputStream << processName << " is " << (float(a)/float(numberOfSeeds))*progress*100 << "\%";
-	// std::cout << "\r" << outputStream.str() << std::flush;
 }
 
 //displays done message to terminal
@@ -669,7 +650,7 @@ void done()
 						<< "Mesh dimensions: " << N << "x" << N << "\n"
 						<< "Beta range explored: "<< beta_min<< " - " << beta_max << " in steps of " << beta_step << "\n"
 						<< "mu_B range explored: "<< mu_B_min<< " - " << mu_B_max << " in steps of " << mu_B_step << "\n"
-						<< "Beta outputted as temp: " << outputOneOverBeta << "\n"
+						<< "Beta outputted as temp: " << (outputOneOverBeta ? "OBVIOUSLY\n" : "YOU HAVING A LAUGH\n")
 						<<	"J: " << J << "\n"
 						<< "-------------------------------------------------------------\n"
 						<< "=============================================================\n"
