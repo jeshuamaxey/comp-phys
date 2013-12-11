@@ -1,5 +1,6 @@
 // C/C++ header files
 #include <cstdlib>
+#include <stdint.h>
 #include <math.h>
 #include <iostream>
 #include <fstream>
@@ -14,6 +15,7 @@
 #include "config.h"
 #include "ASCII.h"
 #include "dimensions.cpp"
+#include "tracktime.cpp"
 
 #define simulatedTime 100.0												//simulated time (seconds)
 #define g 9.81																		//acceleration due to gravity
@@ -31,34 +33,44 @@ double 	totalMeshEnergiesPastEquilibrium[2][simulationsPastEquilibrium],
 				totalMeshSpinPastEquilibrium[2][simulationsPastEquilibrium],
 				totalMeshMagnetisationPastEquilibrium[2][simulationsPastEquilibrium];
 
-double total_mesh_E[2], total_mesh_M[2];					//total energy, total magnetisation (of micro state)
-double E_av[2], E_s_av[2];												//average energy, average square energy
-double S_av[2], S_s_av[2];												//average spin, average square spin
+double total_mesh_E[2], total_mesh_M[2];											//total energy, total magnetisation (of micro state)
+double E_av[numberOfSeeds][2], E_s_av[numberOfSeeds][2];			//average energy, average square energy
+double S_av[numberOfSeeds][2], S_s_av[numberOfSeeds][2];			//average spin, average square spin
 
 double previousEnergies[2][2][numberPrevEs];			//used to record moving averages of energy
-double J = 1.0;																		//J/(k_b*T) = beta
-float mu_B = 0;//0.5*J;																//
 
-int seeds[10] = {	116426264,
-									731462758,
-									1831960109,
-									851277867,
-									2075181264,
-									3079435518,
-									2241738047,
-									39641460,
-									4284274333,
-									1658052039 };
+//char processName[3][64] = {'Simulating zero B','Simulating non-zero B','Simulating varying B'};
+
+int seeds[numberOfSeeds] = {
+		116426264,
+		731462758,
+		1831960109,
+		851277867,
+		2075181264,
+		3079435518,
+		2241738047,
+		39641460,
+		4284274333,
+		1658052039 };
+
+double startTime, endTime;												//keep track of how long code took to run
 
 /**** SHAMELESS GLOBAL FILESTREAMS ****/
 ofstream sys_props_file("data/sys_props.csv");
 ofstream debug("data/debug.csv");
 
 /**** FUNCTION PROTOTYPES *************/
+void initOutputFile(ostream&);
 
-void simulateToEquilibrium(double);
-void simulatePastEquilibrium(double);
-void calculateSystemProperties();
+void runSimulation(double, double, ostream&, int, int);
+
+void simulateZeroB(ostream&, int);
+void simulateNonZeroB(ostream&, int);
+void simulateVaryingB(ostream&, int);
+
+void simulateToEquilibrium(double, double);
+void simulatePastEquilibrium(double, double);
+void calculateSystemProperties(int);
 void metropolisSpinFlip(double, int);
 bool atEquilibrium(int, double, int);
 
@@ -80,9 +92,10 @@ int randInt(int);
 //energy functions
 double calcAverageEnergy(int);
 double calcAverageEnergySquared(int);
-double calcTotalMicroEnergy(int);
+double calcTotalMicroEnergy(int, double);
 double calcPartialSiteEnergy(int, int, int);
 double calcDeltaEnergy(int, int, int);
+double calcMeanAverageEnergy(int);
 
 //magnetisation functions
 double calcTotalMicroMagnetisation(int);
@@ -90,15 +103,14 @@ double calcdM(int, int, int);
 double calcTotalMacroMagnetisation(double, int);
 
 //
-double calcSpecificHeatCapacity(double, int);
-double calcMagneticSusceptibility(double, int);
+double calcSpecificHeatCapacity(double, int, int);
+double calcMagneticSusceptibility(double, int, int);
 
 //output to file/screen
-void initOutputFile();
-void outputSystemPropertiesToFile(double);
+void outputSystemPropertiesToFile(double, double, ostream&, int);
 
 //helper functions
-void updateProgress(double); 	//expects a fraction of completion
+void updateProgress(double, int, int); 	//expects a fraction of completion
 void done();
 
 
@@ -109,31 +121,102 @@ gsl_rng * r_uni;						//default rng instance
 
 int main()
 {
-	r_uni = setupUniformRNG(2);
-	initOutputFile();
-	initialiseSpins();
-	float beta;
-	for (int i = 0; i <= int(beta_max/beta_step); ++i)
+	//log start time
+	startTime = GetTimeMs64();
+	//create filestreams
+	ofstream zeroBFile("data/zeroB.csv");
+	ofstream nonZeroBFile("data/nonZeroB.csv");
+	ofstream varyingZeroBFile("data/varyingZeroB.csv");
+
+	//absolutely necessary debugging tool
+	cout << ASCII_batman;
+
+	initOutputFile(zeroBFile);
+	initOutputFile(nonZeroBFile);
+	initOutputFile(varyingZeroBFile);
+	//loop that iterates through rng seeds
+	for (int a = 0; a < numberOfSeeds; ++a)
 	{
-		beta = beta_min+(i*beta_step);
-		simulateToEquilibrium(beta);
-		simulatePastEquilibrium(beta);
-		calculateSystemProperties();
-		outputSystemPropertiesToFile(beta);
-		updateProgress(float(i*beta_step/beta_max));
+		//reset random number generator
+		r_uni = setupUniformRNG(a);
+		//align spins
+		initialiseSpins();
+		//run appropriate simulations
+		if(simulateForZeroB) simulateZeroB(zeroBFile, a);
+		if(simulateForNonZeroB) simulateNonZeroB(nonZeroBFile, a);
+		if(simulateForVaryingB) simulateVaryingB(varyingZeroBFile, a);
+		//
+		updateProgress(float(a)/float(numberOfSeeds), a, 0);
 	}
+
+	//job up!
 	done();
 }
 
-void simulateToEquilibrium(double beta)
+void simulateZeroB(ostream& outputFile, int a)
+{
+	//Zero B Field - varying beta
+	//initOutputFile(outputFile);
+	//fix mu_B
+	float beta =0, mu_B = 0;
+	for (int i = 0; i <= int(beta_max/beta_step); ++i)
+	{
+		//set beta
+		beta = beta_min+(i*beta_step);
+		//run simulation under these conditions
+		runSimulation(beta, mu_B, outputFile, a, 0);
+	}
+}
+
+void simulateNonZeroB(ostream& outputFile, int a)
+{
+	//Constant (non-zero) B Field - varying beta
+	//initOutputFile(outputFile);
+	//fix mu_B
+	float beta =0, mu_B = 0.5*J;
+	for (int i = 0; i <= int(beta_max/beta_step); ++i)
+	{
+		//set beta
+		beta = beta_min+(i*beta_step);
+		//run simulation under these conditions
+		runSimulation(beta, mu_B, outputFile, a, 1);
+	}
+}
+
+void simulateVaryingB(ostream& outputFile, int a)
+{
+	//Constant beta (~T_crit ) - varying B field
+	//initOutputFile(outputFile);
+	//fix beta
+	float beta = 0.25, mu_B = 0;
+	for (int i = 0; i <= int(mu_B_max/mu_B_step); ++i) {
+		//set magnetic field strength
+		mu_B = mu_B_min+(i*mu_B_step);
+		//run simulation under these conditions
+		runSimulation(beta, mu_B, outputFile, a, 2);
+	}
+}
+
+void runSimulation(double beta, double mu_B, ostream& outputFile, int a, int nameIndex)
+{
+	simulateToEquilibrium(beta, mu_B);
+	simulatePastEquilibrium(beta, mu_B);
+	calculateSystemProperties(a);
+	//on last iteration of loop output to file
+	if(a==9) outputSystemPropertiesToFile(beta, mu_B, outputFile, a);
+
+	//updateProgress(float((beta-beta_min)/beta_max), a, nameIndex);
+}
+
+void simulateToEquilibrium(double beta, double mu_B)
 {
 	bool equilibrium[2] = {false, false};
 	int i=0, i_outputted=0;									//the spin coordinates particular loop iteration
 
-	total_mesh_E[h] = calcTotalMicroEnergy(h);				//total energy of system
-	total_mesh_M[h] = calcTotalMicroMagnetisation(h);	//total magnetisation of system
-	total_mesh_E[c] = calcTotalMicroEnergy(c);				//total energy of system
-	total_mesh_M[c] = calcTotalMicroMagnetisation(c);	//total magnetisation of system
+	total_mesh_E[h] = calcTotalMicroEnergy(h, mu_B);				//total energy of system
+	total_mesh_M[h] = calcTotalMicroMagnetisation(h);				//total magnetisation of system
+	total_mesh_E[c] = calcTotalMicroEnergy(c, mu_B);				//total energy of system
+	total_mesh_M[c] = calcTotalMicroMagnetisation(c);				//total magnetisation of system
 
 	//find equilibrium from hot start
 	while(!equilibrium[h])
@@ -150,12 +233,9 @@ void simulateToEquilibrium(double beta)
 		equilibrium[c] = atEquilibrium(i, total_mesh_E[c], c);
 		i++;
 	}	//end of while loop for hot start
-
-	//messages etc.
-	// cout << "For beta = " << beta << ", equilibrium was found after " << i << " iterations.\n";
 }
 
-void simulatePastEquilibrium(double beta)
+void simulatePastEquilibrium(double beta, double mu_B)
 {
 	//once equilibrium has been reached we run the simulation
 	//a few more times to [[[WHY?]]]
@@ -168,27 +248,27 @@ void simulatePastEquilibrium(double beta)
 			metropolisSpinFlip(beta, h);
 			metropolisSpinFlip(beta, c);
 		}
-		totalMeshEnergiesPastEquilibrium[h][i] = calcTotalMicroEnergy(h);
+		totalMeshEnergiesPastEquilibrium[h][i] = calcTotalMicroEnergy(h, mu_B);
 		totalMeshSpinPastEquilibrium[h][i] = calcTotalSpin(h);
 		totalMeshMagnetisationPastEquilibrium[h][i] = calcTotalMicroMagnetisation(h);
 
-		totalMeshEnergiesPastEquilibrium[c][i] = calcTotalMicroEnergy(c);
+		totalMeshEnergiesPastEquilibrium[c][i] = calcTotalMicroEnergy(c, mu_B);
 		totalMeshSpinPastEquilibrium[c][i] = calcTotalSpin(c);
 		totalMeshMagnetisationPastEquilibrium[c][i] = calcTotalMicroMagnetisation(c);
 	}
 }
 
-void calculateSystemProperties()
+void calculateSystemProperties(int a)
 {
-	E_av[h] 		= calcAverageEnergy(h);
-	E_s_av[h] 	= calcAverageEnergySquared(h);
-	S_av[h] 		= calcAverageSpin(h);
-	S_s_av[h]		= calcAverageSpinSquared(h);
+	E_av[a][h] 		= calcAverageEnergy(h);
+	E_s_av[a][h] 	= calcAverageEnergySquared(h);
+	S_av[a][h] 		= calcAverageSpin(h);
+	S_s_av[a][h]	= calcAverageSpinSquared(h);
 
-	E_av[c] 		= calcAverageEnergy(c);
-	E_s_av[c] 	= calcAverageEnergySquared(c);
-	S_av[c] 		= calcAverageSpin(c);
-	S_s_av[c]		= calcAverageSpinSquared(c);
+	E_av[a][c] 		= calcAverageEnergy(c);
+	E_s_av[a][c] 	= calcAverageEnergySquared(c);
+	S_av[a][c] 		= calcAverageSpin(c);
+	S_s_av[a][c]	= calcAverageSpinSquared(c);
 }
 
 void metropolisSpinFlip(double beta, int t)
@@ -314,6 +394,7 @@ void initHotSpins()
 
 int randomSpin()
 {
+	//program crashes here
 	return gsl_rng_uniform(r_uni) > 0.5 ? 1 : -1 ;
 }
 
@@ -378,7 +459,7 @@ double calcAverageEnergySquared(int t)
 	return E/simulationsPastEquilibrium;
 }
 
-double calcTotalMicroEnergy(int t)
+double calcTotalMicroEnergy(int t, double mu_B)
 {
 	double E_1 = 0.0,  E_2 = 0.0;
 	for (int x = 0; x < N; ++x)
@@ -415,6 +496,16 @@ double calcDeltaEnergy(int x, int y, int t)
 	return 2.0*calcPartialSiteEnergy(x,y,t);
 }
 
+double calcMeanAverageEnergy(int t)
+{
+	double E = 0.0;
+	for (int i = 0; i < numberOfSeeds ; ++i)
+	{
+		E += E_av[i][t];
+	}
+	return E/float(numberOfSeeds);
+}
+
 /*
 *	MAGNETISATION FUNCTIONS
 */
@@ -445,59 +536,66 @@ double calcTotalMacroMagnetisation(double beta, int t)
 	double M = 0.0;
 	for (int i = 0; i < simulationsPastEquilibrium; ++i)
 	{
-		M += totalMeshMagnetisationPastEquilibrium[t][i];
+		M += abs(totalMeshMagnetisationPastEquilibrium[t][i]);
 	}
-	return M;
+	return M/(N*N);
 }
 
 /*
 *
 */
-double calcSpecificHeatCapacity(double beta, int t)
+double calcSpecificHeatCapacity(double beta, int t, int a)
 {
-	//this one I think is right
-	return pow(N, -2.0) * ( (k_b*pow(beta,2.0)) / pow(J,2.0) ) * ( E_s_av[t] - pow(E_av[t], 2.0)) ;
-	//return pow(N, -2.0) * ( pow(beta,2.0) / (k_b*pow(J,2.0)) ) * ( E_s_av[t] - pow(E_av[t], 2.0)) ;
+	double shc = 0.0;
+	for (int i = 0; i < numberOfSeeds; ++i)
+	{
+		shc += ( pow(N, -2.0) * ( (k_b*pow(beta,2.0)) / pow(J,2.0) ) * ( E_s_av[i][t] - pow(E_av[i][t], 2.0)) );
+	}
+	return shc/float(numberOfSeeds);
 }
 
-double calcMagneticSusceptibility(double beta, int t)
+double calcMagneticSusceptibility(double beta, int t, int a)
 {
-	return pow(N, -2.0)*(beta) * ( S_s_av[t] - pow(S_av[t], 2.0));
+	float ms = 0.0;
+	for (int i = 0; i < numberOfSeeds; ++i)
+	{
+		ms += ( pow(N, -2.0)*(beta) * ( S_s_av[i][t] - pow(S_av[i][t], 2.0)) );
+	}
+	return ms/float(numberOfSeeds);
 }
 
 
 /*
 *	OUTPUT TO FILE/SCREEN
 */
-void initOutputFile()
+
+void initOutputFile(ostream& outputFile)
 {
-	if(outputOneOverBeta) sys_props_file << "T";
-	else 									sys_props_file << "beta";
-	if(outputE) sys_props_file << ",E_av (cold),E_av (hot)";
-	if(outputM) sys_props_file << ",M (cold),M (hot)";
-	if(outputSHC) sys_props_file << ",SHC (cold),SHC (hot)";
-	if(outputMS) sys_props_file << ",MS (cold),MS (hot)";
-	sys_props_file << "\n";
+	if(outputOneOverBeta) outputFile << "T";
+	else 									outputFile << "beta";
+	if(outputE) outputFile << ",E_av (cold),E_av (hot)";
+	if(outputM) outputFile << ",M (cold),M (hot)";
+	if(outputSHC) outputFile << ",SHC (cold),SHC (hot)";
+	if(outputMS) outputFile << ",MS (cold),MS (hot)";
+	outputFile << "\n";
 }
 
-void outputSystemPropertiesToFile(double beta)
+void outputSystemPropertiesToFile(double beta, double mu_B, ostream& outputFile, int a)
 {
-	if(outputOneOverBeta) sys_props_file	<< 1/beta;
-	else 									sys_props_file	<< beta;
-	//if(outputE) 	sys_props_file << "," << total_mesh_E[c]/pow(N, 2.0) << "," << total_mesh_E[h]/pow(N, 2.0);
-	//if(outputM) 	sys_props_file << "," << total_mesh_M[c] << "," << total_mesh_M[h];
-	if(outputE) 	sys_props_file << "," << E_av[c] << "," << E_av[h];
-	if(outputM) 	sys_props_file << "," << calcTotalMacroMagnetisation(beta, c) << "," << calcTotalMacroMagnetisation(beta, h);
-	if(outputSHC) sys_props_file << "," << calcSpecificHeatCapacity(beta, c) << "," << calcSpecificHeatCapacity(beta, h);
-	if(outputMS) 	sys_props_file << "," << calcMagneticSusceptibility(beta, c) << "," << calcMagneticSusceptibility(beta, h);
-	sys_props_file << "\n";
+	if(outputOneOverBeta) outputFile	<< 1/beta;
+	else 									outputFile	<< beta;
+	if(outputE) 	outputFile << "," << calcMeanAverageEnergy(c) << "," << calcMeanAverageEnergy(h);
+	if(outputM) 	outputFile << "," << calcTotalMacroMagnetisation(beta, c) << "," << calcTotalMacroMagnetisation(beta, h);
+	if(outputSHC) outputFile << "," << calcSpecificHeatCapacity(beta, c, a) << "," << calcSpecificHeatCapacity(beta, h, a);
+	if(outputMS) 	outputFile << "," << calcMagneticSusceptibility(beta, c, a) << "," << calcMagneticSusceptibility(beta, h, a);
+	outputFile << "\n";
 }
 
 /*
 * HELPER FUNCTIONS
 */
 //updates the progress display on commandline
-void updateProgress(double progress)
+void updateProgress(double progress, int a, int nameIndex)
 {
 	int width = getTerminalWidth();
 	int progressBarLength = int(progress*width);
@@ -511,8 +609,23 @@ void updateProgress(double progress)
 	{
 		progressBar << " ";
 	}
-	//std::cout << "\rRunning: " << progress*100 << "\%\n" << std::flush;
 	std::cout << "\r" << progressBar.str() << std::flush;
+	// stringstream outputStream;
+	// string processName;
+	// switch(nameIndex)
+	// {
+	// 	case 0:
+	// 		processName = 'Simulating zero B';
+	// 		break;
+	// 	case 1:
+	// 		processName = 'Simulating non-zero B';
+	// 		break;
+	// 	case 2:
+	// 		processName = 'Simulating varying B';
+	// 		break;
+	// }
+	// outputStream << processName << " is " << (float(a)/float(numberOfSeeds))*progress*100 << "\%";
+	// std::cout << "\r" << outputStream.str() << std::flush;
 }
 
 //displays done message to terminal
@@ -520,19 +633,28 @@ void done()
 {
 	std::cout.precision(3);
 	std::cout << std::fixed << "\r\n\n"
-						<< ASCII_done
+						<< ASCII_program_report
 						<<	"Program Report:\n"
 						<< "---------------\n"
+						<< "Time to execute: " << (GetTimeMs64() - startTime)/1000 << " seconds\n"
 						<< "Mesh dimensions: " << N << "x" << N << "\n"
-						<< "Beta range explored: 0 - " << beta_max << " in steps of " << beta_step << "\n"
+						<< "Beta range explored: "<< beta_min<< " - " << beta_max << " in steps of " << beta_step << "\n"
+						<< "mu_B range explored: "<< mu_B_min<< " - " << mu_B_max << " in steps of " << mu_B_step << "\n"
 						<< "Beta outputted as temp: " << outputOneOverBeta << "\n"
-						<<	"J: " << J << "\tmu_B: " << mu_B << "\n"
-						<< "==========================================\n"
+						<<	"J: " << J << "\n\n"
+						<< "=============================================================\n"
+						<< "Simulation\t\t\t\t\tRun\n"
+						<< "-------------------------------------------------------------\n"
+						<< "Varying beta, no magnetic field\t\t\t" << (simulateForZeroB ? "YES\n" : "NO\n")
+						<< "Varying beta, constant magnetic field\t\t" << (simulateForNonZeroB ? "YES\n" : "NO\n")
+						<< "Constant beta, varying magnetic field\t\t" << (simulateForVaryingB ? "YES\n" : "NO\n")
+						<< "=============================================================\n\n"
+						<< "=============================================================\n"
 						<< "Property\t\t\tOutputted\n"
-						<< "------------------------------------------\n"
+						<< "-------------------------------------------------------------\n"
 						<< "Energy\t\t\t\t" << (outputE ? "YES\n" : "NO\n")
 						<< "Magnetisation\t\t\t" << (outputM ? "YES\n" : "NO\n")
 						<< "Specific Heat Capacity\t\t" << (outputSHC ? "YES\n" : "NO\n")
 						<< "Magnetic Susceptibility\t\t" << (outputMS ? "YES\n" : "NO\n")
-						<< "==========================================\n";
+						<< "=============================================================\n";
 }

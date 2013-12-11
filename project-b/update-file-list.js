@@ -50,7 +50,7 @@ function outputToFile(err, originalListing) {
 		if(err) {
 			console.log(err);
 		} else {
-			console.log("Files listed in " + outputFile);
+			console.log("Files listed in " + outputFile + "\n\n");
 		}
 	});
 	return false;
