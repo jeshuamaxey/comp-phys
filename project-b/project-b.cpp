@@ -132,7 +132,7 @@ int main()
 	//create filestreams
 	ofstream zeroBFile("data/zeroB.csv");
 	ofstream nonZeroBFile("data/nonZeroB.csv");
-	ofstream varyingZeroBFile("data/varyingZeroB.csv");
+	ofstream varyingZeroBFile("data/varyingBetaZeroB.csv");
 
 	//absolutely necessary debugging tool
 	cout << ASCII_batman;
