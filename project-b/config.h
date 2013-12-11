@@ -23,7 +23,7 @@
 **********************************************/
 #define outputE false
 #define outputM false
-#define outputSHC false	//CHECK it
-#define outputMS true
+#define outputSHC true	//CHECK it
+#define outputMS false
 
-#define outputOneOverBeta false //used to affect the type of plot
+#define outputOneOverBeta true //used to affect the type of plot

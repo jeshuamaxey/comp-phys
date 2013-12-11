@@ -52,6 +52,7 @@ int seeds[10] = {	116426264,
 
 /**** SHAMELESS GLOBAL FILESTREAMS ****/
 ofstream sys_props_file("data/sys_props.csv");
+ofstream debug("data/debug.csv");
 
 /**** FUNCTION PROTOTYPES *************/
 
@@ -70,7 +71,6 @@ void flipSpin(int, int, int);
 
 int calcTotalSpin(int);
 int calcAverageSpin(int);
-int calcTotalSpinSquared(int);
 int calcAverageSpinSquared(int);
 
 //random number functions
@@ -386,33 +386,22 @@ int calcTotalSpin(int t)
 
 int calcAverageSpin(int t)
 {
-	double S = 0.0;
+	double s = 0.0;
 	for (int i = 0; i < simulationsPastEquilibrium; ++i)
 	{
-		S += totalMeshSpinPastEquilibrium[t][i];
+		s += totalMeshSpinPastEquilibrium[t][i];
 	}
-	return S/(N*N);
-	//old code
-	//return calcTotalSpin(t)/pow(N, 2.0);
-}
-
-int calcTotalSpinSquared(int t)
-{
-	// int s = 0;
-	// for (int x = 0; x < N; ++x)
-	// {
-	// 	for (int y = 0; y < N; ++y)
-	// 	{
-	// 		s += pow(mesh[t][x][y], 2.0);
-	// 	}
-	// }
-	// return s;
-	return N*N;
+	return s/simulationsPastEquilibrium;
 }
 
 int calcAverageSpinSquared(int t)
 {
-	return calcTotalSpinSquared(t)/pow(N, 2.0);
+	int s = 0;
+	for (int i = 0; i < simulationsPastEquilibrium; ++i)
+	{
+		s += pow(totalMeshSpinPastEquilibrium[t][i], 2.0);
+	}
+	return s/simulationsPastEquilibrium;
 }
 
 /*
@@ -425,10 +414,7 @@ double calcAverageEnergy(int t)
 	{
 		E += totalMeshEnergiesPastEquilibrium[t][i];
 	}
-	return E/(N*N);
-
-	//old code
-	//return calcTotalMicroEnergy(t)/pow(N, 2.0);
+	return E/simulationsPastEquilibrium;
 }
 
 double calcAverageEnergySquared(int t)
@@ -438,10 +424,7 @@ double calcAverageEnergySquared(int t)
 	{
 		E += pow(totalMeshEnergiesPastEquilibrium[t][i], 2.0);
 	}
-	return E/(N*N);
-
-	//old code
-	//return calcTotalMicroEnergy(t)/pow(N, 2.0);
+	return E/simulationsPastEquilibrium;
 }
 
 double calcTotalMicroEnergy(int t)
