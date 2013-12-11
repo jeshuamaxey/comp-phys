@@ -2,8 +2,8 @@
 *	SELECT SIMULATIONS TO RUN
 **********************************************/
 
-#define simulateForZeroB true
-#define simulateForNonZeroB false
+#define simulateForZeroB false
+#define simulateForNonZeroB true
 #define simulateForVaryingB false
 
 /*********************************************
@@ -11,7 +11,7 @@
 **********************************************/
 
 //Size of single dimension of mesh
-#define N 10
+#define N 20
 //Number of previous energies kept track of to test for equilibrium
 #define numberPrevEs 3*N
 //number seeds used from rng
@@ -50,8 +50,8 @@
 /*********************************************
 *	DETERMINE WHAT THE PROGRAM OUTPUTS
 **********************************************/
-#define outputE true
-#define outputM false
+#define outputE false
+#define outputM true
 #define outputSHC false
 #define outputMS false
 
