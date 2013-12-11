@@ -11,7 +11,7 @@
 **********************************************/
 
 //Size of single dimension of mesh
-#define N 20
+#define N 10
 //Number of previous energies kept track of to test for equilibrium
 #define numberPrevEs 3*N
 //number seeds used from rng
@@ -51,8 +51,8 @@
 *	DETERMINE WHAT THE PROGRAM OUTPUTS
 **********************************************/
 #define outputE false
-#define outputM true
-#define outputSHC false
+#define outputM false
+#define outputSHC true
 #define outputMS false
 
 #define outputOneOverBeta true //used to affect the type of plot

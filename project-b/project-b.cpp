@@ -36,6 +36,8 @@ double 	totalMeshEnergiesPastEquilibrium[2][simulationsPastEquilibrium],
 double total_mesh_E[2], total_mesh_M[2];											//total energy, total magnetisation (of micro state)
 double E_av[numberOfSeeds][2], E_s_av[numberOfSeeds][2];			//average energy, average square energy
 double S_av[numberOfSeeds][2], S_s_av[numberOfSeeds][2];			//average spin, average square spin
+double magneticSusceptibility[numberOfSeeds][2];							//
+double specificHeatCapacity[numberOfSeeds][2];								//
 
 double previousEnergies[2][2][numberPrevEs];			//used to record moving averages of energy
 
@@ -70,7 +72,7 @@ void simulateVaryingB(ostream&, int);
 
 void simulateToEquilibrium(double, double);
 void simulatePastEquilibrium(double, double);
-void calculateSystemProperties(int);
+void calculateSystemProperties(int, double);
 void metropolisSpinFlip(double, int);
 bool atEquilibrium(int, double, int);
 
@@ -82,8 +84,8 @@ int randomSpin();
 void flipSpin(int, int, int);
 
 int calcTotalSpin(int);
-int calcAverageSpin(int);
-int calcAverageSpinSquared(int);
+double calcAverageSpin(int);
+double calcAverageSpinSquared(int);
 
 //random number functions
 gsl_rng* setupUniformRNG(int i);
@@ -104,7 +106,11 @@ double calcTotalMacroMagnetisation(double, int);
 
 //
 double calcSpecificHeatCapacity(double, int, int);
+double calcMeanSpecificHeatCapacity(double, int);
+
+//
 double calcMagneticSusceptibility(double, int, int);
+double calcMeanMagneticSusceptibility(double, int);
 
 //output to file/screen
 void outputSystemPropertiesToFile(double, double, ostream&, int);
@@ -201,9 +207,9 @@ void runSimulation(double beta, double mu_B, ostream& outputFile, int a, int nam
 {
 	simulateToEquilibrium(beta, mu_B);
 	simulatePastEquilibrium(beta, mu_B);
-	calculateSystemProperties(a);
+	calculateSystemProperties(a, beta);
 	//on last iteration of loop output to file
-	if(a==9) outputSystemPropertiesToFile(beta, mu_B, outputFile, a);
+	if(a==numberOfSeeds-1) outputSystemPropertiesToFile(beta, mu_B, outputFile, a);
 
 	//updateProgress(float((beta-beta_min)/beta_max), a, nameIndex);
 }
@@ -211,7 +217,7 @@ void runSimulation(double beta, double mu_B, ostream& outputFile, int a, int nam
 void simulateToEquilibrium(double beta, double mu_B)
 {
 	bool equilibrium[2] = {false, false};
-	int i=0, i_outputted=0;									//the spin coordinates particular loop iteration
+	int i=0, i_outputted=0;																	//the spin coordinates particular loop iteration
 
 	total_mesh_E[h] = calcTotalMicroEnergy(h, mu_B);				//total energy of system
 	total_mesh_M[h] = calcTotalMicroMagnetisation(h);				//total magnetisation of system
@@ -226,13 +232,14 @@ void simulateToEquilibrium(double beta, double mu_B)
 		i++;
 	}	//end of while loop for hot start
 
-	//find equilibrium from hot start
+	i=0;
+	//find equilibrium from cold start
 	while(!equilibrium[c])
 	{
 		metropolisSpinFlip(beta, c);
 		equilibrium[c] = atEquilibrium(i, total_mesh_E[c], c);
 		i++;
-	}	//end of while loop for hot start
+	}	//end of while loop for cold start
 }
 
 void simulatePastEquilibrium(double beta, double mu_B)
@@ -258,7 +265,7 @@ void simulatePastEquilibrium(double beta, double mu_B)
 	}
 }
 
-void calculateSystemProperties(int a)
+void calculateSystemProperties(int a, double beta)
 {
 	E_av[a][h] 		= calcAverageEnergy(h);
 	E_s_av[a][h] 	= calcAverageEnergySquared(h);
@@ -269,6 +276,13 @@ void calculateSystemProperties(int a)
 	E_s_av[a][c] 	= calcAverageEnergySquared(c);
 	S_av[a][c] 		= calcAverageSpin(c);
 	S_s_av[a][c]	= calcAverageSpinSquared(c);
+
+	//mag sus
+	magneticSusceptibility[a][h] = calcMagneticSusceptibility(beta, h, a);
+	magneticSusceptibility[a][c] = calcMagneticSusceptibility(beta, c, a);
+	//shc
+	specificHeatCapacity[a][h] = calcSpecificHeatCapacity(beta, h, a);
+	specificHeatCapacity[a][c] = calcSpecificHeatCapacity(beta, c, a);
 }
 
 void metropolisSpinFlip(double beta, int t)
@@ -416,24 +430,24 @@ int calcTotalSpin(int t)
 	return s;
 }
 
-int calcAverageSpin(int t)
+double calcAverageSpin(int t)
 {
 	double s = 0.0;
 	for (int i = 0; i < simulationsPastEquilibrium; ++i)
 	{
 		s += totalMeshSpinPastEquilibrium[t][i];
 	}
-	return s/simulationsPastEquilibrium;
+	return s/float(simulationsPastEquilibrium);
 }
 
-int calcAverageSpinSquared(int t)
+double calcAverageSpinSquared(int t)
 {
 	int s = 0;
 	for (int i = 0; i < simulationsPastEquilibrium; ++i)
 	{
 		s += pow(totalMeshSpinPastEquilibrium[t][i], 2.0);
 	}
-	return s/simulationsPastEquilibrium;
+	return s/float(simulationsPastEquilibrium);
 }
 
 /*
@@ -542,24 +556,38 @@ double calcTotalMacroMagnetisation(double beta, int t)
 }
 
 /*
-*
+* Specific heat capacity formulae
 */
 double calcSpecificHeatCapacity(double beta, int t, int a)
+{
+	return pow(N, -2.0) * ( (k_b*pow(beta,2.0)) / pow(J,2.0) ) * ( E_s_av[a][t] - pow(E_av[a][t], 2.0));
+}
+
+double calcMeanSpecificHeatCapacity(double beta, int t)
 {
 	double shc = 0.0;
 	for (int i = 0; i < numberOfSeeds; ++i)
 	{
-		shc += ( pow(N, -2.0) * ( (k_b*pow(beta,2.0)) / pow(J,2.0) ) * ( E_s_av[i][t] - pow(E_av[i][t], 2.0)) );
+		shc += specificHeatCapacity[i][t];
 	}
 	return shc/float(numberOfSeeds);
 }
 
+/*
+* magnetic susceptibility formulae
+*/
+
 double calcMagneticSusceptibility(double beta, int t, int a)
+{
+	return pow(N, -2.0)*(beta) * ( S_s_av[a][t] - pow(S_av[a][t], 2.0));
+}
+
+double calcMeanMagneticSusceptibility(double beta, int t)
 {
 	float ms = 0.0;
 	for (int i = 0; i < numberOfSeeds; ++i)
 	{
-		ms += ( pow(N, -2.0)*(beta) * ( S_s_av[i][t] - pow(S_av[i][t], 2.0)) );
+		ms += magneticSusceptibility[i][t];
 	}
 	return ms/float(numberOfSeeds);
 }
@@ -586,8 +614,10 @@ void outputSystemPropertiesToFile(double beta, double mu_B, ostream& outputFile,
 	else 									outputFile	<< beta;
 	if(outputE) 	outputFile << "," << calcMeanAverageEnergy(c) << "," << calcMeanAverageEnergy(h);
 	if(outputM) 	outputFile << "," << calcTotalMacroMagnetisation(beta, c) << "," << calcTotalMacroMagnetisation(beta, h);
-	if(outputSHC) outputFile << "," << calcSpecificHeatCapacity(beta, c, a) << "," << calcSpecificHeatCapacity(beta, h, a);
-	if(outputMS) 	outputFile << "," << calcMagneticSusceptibility(beta, c, a) << "," << calcMagneticSusceptibility(beta, h, a);
+	//if(outputSHC) outputFile << "," << calcSpecificHeatCapacity(beta, c, a) << "," << calcSpecificHeatCapacity(beta, h, a);
+	//if(outputMS) 	outputFile << "," << calcMagneticSusceptibility(beta, c, a) << "," << calcMagneticSusceptibility(beta, h, a);
+	if(outputSHC) outputFile << "," << calcMeanSpecificHeatCapacity(beta, c) << "," << calcMeanSpecificHeatCapacity(beta, h);
+	if(outputMS) 	outputFile << "," << calcMeanMagneticSusceptibility(beta, c) << "," << calcMeanMagneticSusceptibility(beta, h);
 	outputFile << "\n";
 }
 
@@ -634,14 +664,14 @@ void done()
 	std::cout.precision(3);
 	std::cout << std::fixed << "\r\n\n"
 						<< ASCII_program_report
-						<<	"Program Report:\n"
-						<< "---------------\n"
+						<< "-------------------------------------------------------------\n"
 						<< "Time to execute: " << (GetTimeMs64() - startTime)/1000 << " seconds\n"
 						<< "Mesh dimensions: " << N << "x" << N << "\n"
 						<< "Beta range explored: "<< beta_min<< " - " << beta_max << " in steps of " << beta_step << "\n"
 						<< "mu_B range explored: "<< mu_B_min<< " - " << mu_B_max << " in steps of " << mu_B_step << "\n"
 						<< "Beta outputted as temp: " << outputOneOverBeta << "\n"
-						<<	"J: " << J << "\n\n"
+						<<	"J: " << J << "\n"
+						<< "-------------------------------------------------------------\n"
 						<< "=============================================================\n"
 						<< "Simulation\t\t\t\t\tRun\n"
 						<< "-------------------------------------------------------------\n"
@@ -650,11 +680,11 @@ void done()
 						<< "Constant beta, varying magnetic field\t\t" << (simulateForVaryingB ? "YES\n" : "NO\n")
 						<< "=============================================================\n\n"
 						<< "=============================================================\n"
-						<< "Property\t\t\tOutputted\n"
+						<< "Property\t\t\t\t\tOutputted\n"
 						<< "-------------------------------------------------------------\n"
-						<< "Energy\t\t\t\t" << (outputE ? "YES\n" : "NO\n")
-						<< "Magnetisation\t\t\t" << (outputM ? "YES\n" : "NO\n")
-						<< "Specific Heat Capacity\t\t" << (outputSHC ? "YES\n" : "NO\n")
-						<< "Magnetic Susceptibility\t\t" << (outputMS ? "YES\n" : "NO\n")
+						<< "Energy\t\t\t\t\t\t" << (outputE ? "YES\n" : "NO\n")
+						<< "Magnetisation\t\t\t\t\t" << (outputM ? "YES\n" : "NO\n")
+						<< "Specific Heat Capacity\t\t\t\t" << (outputSHC ? "YES\n" : "NO\n")
+						<< "Magnetic Susceptibility\t\t\t\t" << (outputMS ? "YES\n" : "NO\n")
 						<< "=============================================================\n";
 }
