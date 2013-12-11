@@ -16,9 +16,9 @@
 #include "dimensions.cpp"
 
 #define simulatedTime 100.0												//simulated time (seconds)
-#define g 9.81																//acceleration due to gravity
+#define g 9.81																		//acceleration due to gravity
 #define pi 4.0*atan(1.0)													//mutha fuckin pi man
-#define k_b 1.3806488e-23												//boltzmann's constant
+#define k_b 1.3806488e-23													//boltzmann's constant
 #define mu 9.27400968e-24 												//bohr magneton
 
 using namespace std;
@@ -27,24 +27,38 @@ using namespace std;
 int h = 0, c = 1;
 int mesh[2][N][N];																//mesh[h] hot start, mesh[c] cold start
 
-double total_E[2], total_M[2];
+double 	totalMeshEnergiesPastEquilibrium[2][simulationsPastEquilibrium],
+				totalMeshSpinPastEquilibrium[2][simulationsPastEquilibrium],
+				totalMeshMagnetisationPastEquilibrium[2][simulationsPastEquilibrium];
+
+double total_mesh_E[2], total_mesh_M[2];					//total energy, total magnetisation (of micro state)
 double E_av[2], E_s_av[2];												//average energy, average square energy
 double S_av[2], S_s_av[2];												//average spin, average square spin
 
 double previousEnergies[2][2][numberPrevEs];			//used to record moving averages of energy
-double J = 1.0;												//J/(k_b*T) -> 1/(k_b*T) = J*beta
-float mu_B = 0.5*J;
+double J = 1.0;																		//J/(k_b*T) = beta
+float mu_B = 0;//0.5*J;																//
+
+int seeds[10] = {	116426264,
+									731462758,
+									1831960109,
+									851277867,
+									2075181264,
+									3079435518,
+									2241738047,
+									39641460,
+									4284274333,
+									1658052039 };
 
 /**** SHAMELESS GLOBAL FILESTREAMS ****/
 ofstream sys_props_file("data/sys_props.csv");
-int seeds[10] = {116426264,1731462758, 1831960109, 851277867, 2075181264, 3079435518, 2241738047, 39641460, 4284274333, 1658052039};
 
 /**** FUNCTION PROTOTYPES *************/
 
 void simulateToEquilibrium(double);
-void simulateXTimes(double, int);
+void simulatePastEquilibrium(double);
 void calculateSystemProperties();
-void findEquilibrium(double, int);
+void metropolisSpinFlip(double, int);
 bool atEquilibrium(int, double, int);
 
 //spin functions
@@ -65,14 +79,15 @@ int randInt(int);
 
 //energy functions
 double calcAverageEnergy(int);
-double calcTotalEnergy(int);
+double calcAverageEnergySquared(int);
+double calcTotalMicroEnergy(int);
 double calcPartialSiteEnergy(int, int, int);
 double calcDeltaEnergy(int, int, int);
 
 //magnetisation functions
-double calcAverageMagnetisation(int);
-double calcTotalMagnetisation(int);
+double calcTotalMicroMagnetisation(int);
 double calcdM(int, int, int);
+double calcTotalMacroMagnetisation(double, int);
 
 //
 double calcSpecificHeatCapacity(double, int);
@@ -100,9 +115,9 @@ int main()
 	float beta;
 	for (int i = 0; i <= int(beta_max/beta_step); ++i)
 	{
-		beta = i*beta_step;
+		beta = beta_min+(i*beta_step);
 		simulateToEquilibrium(beta);
-		simulateXTimes(beta, N*N);
+		simulatePastEquilibrium(beta);
 		calculateSystemProperties();
 		outputSystemPropertiesToFile(beta);
 		updateProgress(float(i*beta_step/beta_max));
@@ -115,24 +130,24 @@ void simulateToEquilibrium(double beta)
 	bool equilibrium[2] = {false, false};
 	int i=0, i_outputted=0;									//the spin coordinates particular loop iteration
 
-	total_E[h] = calcTotalEnergy(h);				//total energy of system
-	total_M[h] = calcTotalMagnetisation(h);	//total magnetisation of system
-	total_E[c] = calcTotalEnergy(c);				//total energy of system
-	total_M[c] = calcTotalMagnetisation(c);	//total magnetisation of system
+	total_mesh_E[h] = calcTotalMicroEnergy(h);				//total energy of system
+	total_mesh_M[h] = calcTotalMicroMagnetisation(h);	//total magnetisation of system
+	total_mesh_E[c] = calcTotalMicroEnergy(c);				//total energy of system
+	total_mesh_M[c] = calcTotalMicroMagnetisation(c);	//total magnetisation of system
 
 	//find equilibrium from hot start
 	while(!equilibrium[h])
 	{
-		findEquilibrium(beta, h);
-		equilibrium[h] = atEquilibrium(i, total_E[h], h);
+		metropolisSpinFlip(beta, h);
+		equilibrium[h] = atEquilibrium(i, total_mesh_E[h], h);
 		i++;
 	}	//end of while loop for hot start
 
 	//find equilibrium from hot start
 	while(!equilibrium[c])
 	{
-		findEquilibrium(beta, c);
-		equilibrium[c] = atEquilibrium(i, total_E[c], c);
+		metropolisSpinFlip(beta, c);
+		equilibrium[c] = atEquilibrium(i, total_mesh_E[c], c);
 		i++;
 	}	//end of while loop for hot start
 
@@ -140,35 +155,58 @@ void simulateToEquilibrium(double beta)
 	// cout << "For beta = " << beta << ", equilibrium was found after " << i << " iterations.\n";
 }
 
-void simulateXTimes(double beta, int count)
+void simulatePastEquilibrium(double beta)
 {
 	//once equilibrium has been reached we run the simulation
 	//a few more times to [[[WHY?]]]
-	for (int i = 0; i < count; ++i)
+	//arrays for
+	for(int i = 0; i < simulationsPastEquilibrium; ++i)
 	{
-		findEquilibrium(beta, h);
-		findEquilibrium(beta, c);
+		//
+		for(int j = 0; j < N*N; ++j)
+		{
+			metropolisSpinFlip(beta, h);
+			metropolisSpinFlip(beta, c);
+		}
+		totalMeshEnergiesPastEquilibrium[h][i] = calcTotalMicroEnergy(h);
+		totalMeshSpinPastEquilibrium[h][i] = calcTotalSpin(h);
+		totalMeshMagnetisationPastEquilibrium[h][i] = calcTotalMicroMagnetisation(h);
+
+		totalMeshEnergiesPastEquilibrium[c][i] = calcTotalMicroEnergy(c);
+		totalMeshSpinPastEquilibrium[c][i] = calcTotalSpin(c);
+		totalMeshMagnetisationPastEquilibrium[c][i] = calcTotalMicroMagnetisation(c);
 	}
 }
 
 void calculateSystemProperties()
 {
-	total_E[h]	= calcTotalEnergy(h);
-	total_M[h]	= calcTotalMagnetisation(h);
+	/*
+	total_mesh_E[h]	= calcTotalMicroEnergy(h);
+	total_mesh_M[h]	= calcTotalMicroMagnetisation(h);
 	E_av[h] 		= calcAverageEnergy(h);
 	E_s_av[h] 	= 0.0;
 	S_av[h] 		= calcAverageSpin(h);
 	S_s_av[h]		= calcAverageSpinSquared(h);
 
-	total_E[c]	= calcTotalEnergy(c);
-	total_M[c]	= calcTotalMagnetisation(c);
+	total_mesh_E[c]	= calcTotalMicroEnergy(c);
+	total_mesh_M[c]	= calcTotalMicroMagnetisation(c);
 	E_av[c] 		= calcAverageEnergy(c);
 	E_s_av[c] 	= 0.0;
 	S_av[c] 		= calcAverageSpin(c);
 	S_s_av[c]		= calcAverageSpinSquared(c);
+	*/
+	E_av[h] 		= calcAverageEnergy(h);
+	E_s_av[h] 	= calcAverageEnergySquared(h);
+	S_av[h] 		= calcAverageSpin(h);
+	S_s_av[h]		= calcAverageSpinSquared(h);
+
+	E_av[c] 		= calcAverageEnergy(c);
+	E_s_av[c] 	= calcAverageEnergySquared(c);
+	S_av[c] 		= calcAverageSpin(c);
+	S_s_av[c]		= calcAverageSpinSquared(c);
 }
 
-void findEquilibrium(double beta, int t)
+void metropolisSpinFlip(double beta, int t)
 {
 	int x = randInt(N);
 	int y = randInt(N);
@@ -177,8 +215,8 @@ void findEquilibrium(double beta, int t)
 	{
 		flipSpin(x,y,t);
 
-		total_E[t] += dE;
-		total_M[t] += calcdM(x,y,t);
+		total_mesh_E[t] += dE;
+		total_mesh_M[t] += calcdM(x,y,t);
 	}
 	else
 	{
@@ -187,8 +225,8 @@ void findEquilibrium(double beta, int t)
 		{
 			flipSpin(x,y,t);
 			
-			total_E[t] += dE;
-			total_M[t] += calcdM(x,y,t);
+			total_mesh_E[t] += dE;
+			total_mesh_M[t] += calcdM(x,y,t);
 		}
 	}
 }
@@ -196,17 +234,29 @@ void findEquilibrium(double beta, int t)
 //returns true if mesh is at equilibrium, false otherwise
 bool atEquilibrium(int i, double E, int t)
 {
-	//double pc_diff_max = 0.0001;
+	int x = i%(4*numberPrevEs);
 
-	if(i%(2*numberPrevEs) < numberPrevEs)
+	// 50% chance we need to ignore so do shortcircuiting costly evaluation first
+	if( ( (0 <= x) && (x< 3*N) ) || (6*N <= x && x< 9*N) )	//	0 < x < 3N OR 6N < x < 9N
+	{
+		//ignore this value
+		return false;
+	}
+	//is 3N < x < 6N ?
+	//store in first moving average array
+	else if (3*N <= x && x< 6*N)
 	{
 		previousEnergies[t][0][i%numberPrevEs] = E;
-	} else
+	}
+	//is 9N < x < 12N
+	//store in second moving average array
+	else if (9*N <= x && x< 12*N)
 	{
 		previousEnergies[t][1][i%numberPrevEs] = E;
 	}
-	if( (i%numberPrevEs == 0) && (i>numberPrevEs) ) 
+	if( (i%(4*numberPrevEs -1) == 0) && (i>0) ) 
 	{
+		//calculate new moving averages
 		double	average1 = 0.0, average2 = 0.0;
 		for (int i = 0; i < numberPrevEs; ++i)
 		{
@@ -215,7 +265,8 @@ bool atEquilibrium(int i, double E, int t)
 		}
 		average1 /= numberPrevEs;
 		average2 /= numberPrevEs;
-		double pc_diff = abs((average1 - average2)/average1);							//percentage difference in average energies
+		//compare against pc_diff_max which characterises the equilibrium condition
+		double pc_diff = abs((average1 - average2)/average1);			//percentage difference in average energies
 		if(pc_diff < pc_diff_max)
 		{
 			return true;
@@ -227,6 +278,40 @@ bool atEquilibrium(int i, double E, int t)
 	{
 		return false;
 	}
+
+
+	//
+	// OLD CODE
+	//
+	// if(i%(2*numberPrevEs) < numberPrevEs)
+	// {
+	// 	previousEnergies[t][0][i%numberPrevEs] = E;
+	// } else
+	// {
+	// 	previousEnergies[t][1][i%numberPrevEs] = E;
+	// }
+	// if( (i%numberPrevEs == 0) && (i>numberPrevEs) ) 
+	// {
+	// 	double	average1 = 0.0, average2 = 0.0;
+	// 	for (int i = 0; i < numberPrevEs; ++i)
+	// 	{
+	// 		average1 += previousEnergies[t][0][i];
+	// 		average2 += previousEnergies[t][1][i];
+	// 	}
+	// 	average1 /= numberPrevEs;
+	// 	average2 /= numberPrevEs;
+	// 	double pc_diff = abs((average1 - average2)/average1);							//percentage difference in average energies
+	// 	if(pc_diff < pc_diff_max)
+	// 	{
+	// 		return true;
+	// 	} else
+	// 	{
+	// 		return false;
+	// 	}
+	// } else
+	// {
+	// 	return false;
+	// }
 }
 
 gsl_rng* setupUniformRNG(int i)
@@ -301,20 +386,28 @@ int calcTotalSpin(int t)
 
 int calcAverageSpin(int t)
 {
-	return calcTotalSpin(t)/pow(N, 2.0);
+	double S = 0.0;
+	for (int i = 0; i < simulationsPastEquilibrium; ++i)
+	{
+		S += totalMeshSpinPastEquilibrium[t][i];
+	}
+	return S/(N*N);
+	//old code
+	//return calcTotalSpin(t)/pow(N, 2.0);
 }
 
 int calcTotalSpinSquared(int t)
 {
-	int s = 0;
-	for (int x = 0; x < N; ++x)
-	{
-		for (int y = 0; y < N; ++y)
-		{
-			s += pow(mesh[t][x][y], 2.0);
-		}
-	}
-	return s;
+	// int s = 0;
+	// for (int x = 0; x < N; ++x)
+	// {
+	// 	for (int y = 0; y < N; ++y)
+	// 	{
+	// 		s += pow(mesh[t][x][y], 2.0);
+	// 	}
+	// }
+	// return s;
+	return N*N;
 }
 
 int calcAverageSpinSquared(int t)
@@ -327,13 +420,33 @@ int calcAverageSpinSquared(int t)
 */
 double calcAverageEnergy(int t)
 {
-	return calcTotalEnergy(t)/pow(N, 2.0);
+	double E = 0.0;
+	for (int i = 0; i < simulationsPastEquilibrium; ++i)
+	{
+		E += totalMeshEnergiesPastEquilibrium[t][i];
+	}
+	return E/(N*N);
+
+	//old code
+	//return calcTotalMicroEnergy(t)/pow(N, 2.0);
 }
 
-double calcTotalEnergy(int t)
+double calcAverageEnergySquared(int t)
+{
+	double E = 0.0;
+	for (int i = 0; i < simulationsPastEquilibrium; ++i)
+	{
+		E += pow(totalMeshEnergiesPastEquilibrium[t][i], 2.0);
+	}
+	return E/(N*N);
+
+	//old code
+	//return calcTotalMicroEnergy(t)/pow(N, 2.0);
+}
+
+double calcTotalMicroEnergy(int t)
 {
 	double E_1 = 0.0,  E_2 = 0.0;
-	//int right, down, left, up;
 	for (int x = 0; x < N; ++x)
 	{
 		for (int y = 0; y < N; ++y)
@@ -372,12 +485,7 @@ double calcDeltaEnergy(int x, int y, int t)
 *	MAGNETISATION FUNCTIONS
 */
 
-double calcAverageMagnetisation(int t)
-{
-	return calcTotalMagnetisation(t)/pow(N, 2.0);
-}
-
-double calcTotalMagnetisation(int t)
+double calcTotalMicroMagnetisation(int t)
 {
 	double M = 0.0;
 	for (int x = 0; x < N; ++x)
@@ -398,14 +506,24 @@ double calcdM(int x, int y, int t)
 	return 2*mesh[t][x][y]*pow(N, -2.0);
 }
 
+double calcTotalMacroMagnetisation(double beta, int t)
+{
+	double M = 0.0;
+	for (int i = 0; i < simulationsPastEquilibrium; ++i)
+	{
+		M += totalMeshMagnetisationPastEquilibrium[t][i];
+	}
+	return M;
+}
+
 /*
 *
 */
 double calcSpecificHeatCapacity(double beta, int t)
 {
 	//this one I think is right
-	//return pow(N, -2.0) * ( (k_b*pow(beta,2.0)) / pow(J,2.0) ) * ( E_s_av[t] - pow(E_av[t], 2.0)) ;
-	return pow(N, -2.0) * ( pow(beta,2.0) / (k_b*pow(J,2.0)) ) * ( E_s_av[t] - pow(E_av[t], 2.0)) ;
+	return pow(N, -2.0) * ( (k_b*pow(beta,2.0)) / pow(J,2.0) ) * ( E_s_av[t] - pow(E_av[t], 2.0)) ;
+	//return pow(N, -2.0) * ( pow(beta,2.0) / (k_b*pow(J,2.0)) ) * ( E_s_av[t] - pow(E_av[t], 2.0)) ;
 }
 
 double calcMagneticSusceptibility(double beta, int t)
@@ -419,9 +537,10 @@ double calcMagneticSusceptibility(double beta, int t)
 */
 void initOutputFile()
 {
-	sys_props_file << "beta";
+	if(outputOneOverBeta) sys_props_file << "T";
+	else 									sys_props_file << "beta";
 	if(outputE) sys_props_file << ",E_av (cold),E_av (hot)";
-	if(outputM) sys_props_file << ",M_av (cold),M_av (hot)";
+	if(outputM) sys_props_file << ",M (cold),M (hot)";
 	if(outputSHC) sys_props_file << ",SHC (cold),SHC (hot)";
 	if(outputMS) sys_props_file << ",MS (cold),MS (hot)";
 	sys_props_file << "\n";
@@ -429,9 +548,12 @@ void initOutputFile()
 
 void outputSystemPropertiesToFile(double beta)
 {
-	sys_props_file	<< beta;
-	if(outputE) 	sys_props_file << "," << total_E[c]/pow(N, 2.0) << "," << total_E[h]/pow(N, 2.0);
-	if(outputM) 	sys_props_file << "," << total_M[c]/pow(N, 2.0) << "," << total_M[h]/pow(N, 2.0);
+	if(outputOneOverBeta) sys_props_file	<< 1/beta;
+	else 									sys_props_file	<< beta;
+	//if(outputE) 	sys_props_file << "," << total_mesh_E[c]/pow(N, 2.0) << "," << total_mesh_E[h]/pow(N, 2.0);
+	//if(outputM) 	sys_props_file << "," << total_mesh_M[c] << "," << total_mesh_M[h];
+	if(outputE) 	sys_props_file << "," << E_av[c] << "," << E_av[h];
+	if(outputM) 	sys_props_file << "," << calcTotalMacroMagnetisation(beta, c) << "," << calcTotalMacroMagnetisation(beta, h);
 	if(outputSHC) sys_props_file << "," << calcSpecificHeatCapacity(beta, c) << "," << calcSpecificHeatCapacity(beta, h);
 	if(outputMS) 	sys_props_file << "," << calcMagneticSusceptibility(beta, c) << "," << calcMagneticSusceptibility(beta, h);
 	sys_props_file << "\n";
@@ -469,6 +591,7 @@ void done()
 						<< "---------------\n"
 						<< "Mesh dimensions: " << N << "x" << N << "\n"
 						<< "Beta range explored: 0 - " << beta_max << " in steps of " << beta_step << "\n"
+						<< "Beta outputted as temp: " << outputOneOverBeta << "\n"
 						<<	"J: " << J << "\tmu_B: " << mu_B << "\n"
 						<< "==========================================\n"
 						<< "Property\t\t\tOutputted\n"
