@@ -180,21 +180,6 @@ void simulatePastEquilibrium(double beta)
 
 void calculateSystemProperties()
 {
-	/*
-	total_mesh_E[h]	= calcTotalMicroEnergy(h);
-	total_mesh_M[h]	= calcTotalMicroMagnetisation(h);
-	E_av[h] 		= calcAverageEnergy(h);
-	E_s_av[h] 	= 0.0;
-	S_av[h] 		= calcAverageSpin(h);
-	S_s_av[h]		= calcAverageSpinSquared(h);
-
-	total_mesh_E[c]	= calcTotalMicroEnergy(c);
-	total_mesh_M[c]	= calcTotalMicroMagnetisation(c);
-	E_av[c] 		= calcAverageEnergy(c);
-	E_s_av[c] 	= 0.0;
-	S_av[c] 		= calcAverageSpin(c);
-	S_s_av[c]		= calcAverageSpinSquared(c);
-	*/
 	E_av[h] 		= calcAverageEnergy(h);
 	E_s_av[h] 	= calcAverageEnergySquared(h);
 	S_av[h] 		= calcAverageSpin(h);
@@ -278,40 +263,6 @@ bool atEquilibrium(int i, double E, int t)
 	{
 		return false;
 	}
-
-
-	//
-	// OLD CODE
-	//
-	// if(i%(2*numberPrevEs) < numberPrevEs)
-	// {
-	// 	previousEnergies[t][0][i%numberPrevEs] = E;
-	// } else
-	// {
-	// 	previousEnergies[t][1][i%numberPrevEs] = E;
-	// }
-	// if( (i%numberPrevEs == 0) && (i>numberPrevEs) ) 
-	// {
-	// 	double	average1 = 0.0, average2 = 0.0;
-	// 	for (int i = 0; i < numberPrevEs; ++i)
-	// 	{
-	// 		average1 += previousEnergies[t][0][i];
-	// 		average2 += previousEnergies[t][1][i];
-	// 	}
-	// 	average1 /= numberPrevEs;
-	// 	average2 /= numberPrevEs;
-	// 	double pc_diff = abs((average1 - average2)/average1);							//percentage difference in average energies
-	// 	if(pc_diff < pc_diff_max)
-	// 	{
-	// 		return true;
-	// 	} else
-	// 	{
-	// 		return false;
-	// 	}
-	// } else
-	// {
-	// 	return false;
-	// }
 }
 
 gsl_rng* setupUniformRNG(int i)
