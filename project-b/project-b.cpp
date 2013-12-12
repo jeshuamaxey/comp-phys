@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <cmath>
 #include <ctime>
@@ -53,7 +54,13 @@ int seeds[numberOfSeeds] = {
 		2241738047,
 		39641460,
 		4284274333,
-		1658052039 };
+		1658052039,
+		2556779743,
+		1336732248,
+		3467317883,
+		2801029336,
+		2025514888
+	};
 
 double startTime, endTime;												//keep track of how long code took to run
 
@@ -632,9 +639,9 @@ void updateProgress(double progress, int a)
 	int progressBarLength = int(progress*width);
 	stringstream progressBar;
 
-	for(int c = 0; c < progressBarLength; ++c)
+	for(int c = 0; c < progressBarLength/2; ++c)
 	{
-		progressBar << a;
+		progressBar << setfill('0') << setw(2) << a;
 	}
 	for(int c = 0; c < width-progressBarLength; ++c)
 	{
@@ -652,6 +659,7 @@ void done()
 						<< "-------------------------------------------------------------\n"
 						<< "Time to execute: " << (GetTimeMs64() - startTime)/1000 << " seconds\n"
 						<< "Mesh dimensions: " << N << "x" << N << "\n"
+						<< "Number of random seeds: " << numberOfSeeds << "\n"
 						<< "Beta range explored: "<< beta_min<< " - " << beta_max << " in steps of " << beta_step << "\n"
 						<< "mu_B range explored: "<< mu_B_min<< " - " << mu_B_max << " in steps of " << mu_B_step << "\n"
 						<< "Beta outputted as temp: " << (outputOneOverBeta ? "OBVIOUSLY\n" : "YOU HAVING A LAUGH\n")
