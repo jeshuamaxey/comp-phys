@@ -11,11 +11,11 @@
 **********************************************/
 
 //Size of single dimension of mesh
-#define N 70
+#define N 25
 //Number of previous energies kept track of to test for equilibrium
 #define numberPrevEs 3*N
-//number seeds used from rng
-#define numberOfSeeds 15
+//number seeds used from rng (max: 15)
+#define numberOfSeeds 10
 //The threshold for percent difference between moving averages.
 //If a difference is below this value, the system is said to have reached equilibrium
 #define pc_diff_max 0.0001
@@ -32,9 +32,9 @@
 //Increment in beta between simulations
 #define beta_step 0.005
 //Minimum value of beta simulated
-#define beta_min 0.15
+#define beta_min 0.25
 //Maximum value of beta simulated
-#define beta_max 1.0
+#define beta_max 0.5
 
 /*********************************************
 *	FOR VARYING mu_B
@@ -46,13 +46,15 @@
 #define mu_B_min -0.5*J
 //Maximum value of beta simulated
 #define mu_B_max 0.5*J
+//set the fixed value of beta for this simulation
+#define fixedBeta 0.25
 
 /*********************************************
 *	DETERMINE WHAT THE PROGRAM OUTPUTS
 **********************************************/
-#define outputE true
-#define outputM true
-#define outputSHC true
+#define outputE false
+#define outputM false
+#define outputSHC false
 #define outputMS true
 
 #define outputOneOverBeta true //used to affect the type of plot

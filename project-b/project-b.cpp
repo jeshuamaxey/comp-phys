@@ -44,7 +44,7 @@ double previousEnergies[2][2][numberPrevEs];			//used to record moving averages 
 
 //char processName[3][64] = {'Simulating zero B','Simulating non-zero B','Simulating varying B'};
 
-int seeds[numberOfSeeds] = {
+int possibleSeeds[15] = {
 		116426264,
 		731462758,
 		1831960109,
@@ -61,6 +61,7 @@ int seeds[numberOfSeeds] = {
 		2801029336,
 		2025514888
 	};
+int seeds[numberOfSeeds];
 
 double startTime, endTime;												//keep track of how long code took to run
 
@@ -134,6 +135,11 @@ gsl_rng * r_uni;						//default rng instance
 
 int main()
 {
+	//fill seeds array
+	for (int i = 0; i < numberOfSeeds; ++i)
+	{
+		seeds[i] = possibleSeeds[i];
+	}
 	//log start time
 	startTime = GetTimeMs64();
 	//create filestreams
@@ -203,14 +209,27 @@ void simulateVaryingB(ostream& outputFile, int a)
 	//Constant beta (~T_crit ) - varying B field
 	//initOutputFile(outputFile);
 	//fix beta
-	float beta = 0.25, mu_B = 0;
+	float beta = fixedBeta,
+				mu_B = 0;
+	//increasing magnetic field
 	for (int i = 0; i <= int(mu_B_max/mu_B_step); ++i) {
 		//set magnetic field strength
 		mu_B = mu_B_min+(i*mu_B_step);
 		//run simulation under these conditions
 		runSimulation(beta, mu_B, outputFile, a, 2);
 		//
-		updateProgress(float(i)/(mu_B_max/mu_B_step), a);
+		updateProgress(float(i)/(mu_B_max*2/mu_B_step), a);
+	}
+	beta = fixedBeta,
+				mu_B = 0;
+	//decreasing magnetic field
+	for (int i = int(mu_B_max/mu_B_step); i == 0 ; --i) {
+		//set magnetic field strength
+		mu_B = mu_B_min+(i*mu_B_step);
+		//run simulation under these conditions
+		runSimulation(beta, mu_B, outputFile, a, 2);
+		//
+		updateProgress(float(i)/(mu_B_max*2/mu_B_step), a);
 	}
 }
 
@@ -254,8 +273,7 @@ void simulateToEquilibrium(double beta, double mu_B)
 void simulatePastEquilibrium(double beta, double mu_B)
 {
 	//once equilibrium has been reached we run the simulation
-	//a few more times to [[[WHY?]]]
-	//arrays for
+	//a few more times to take the average of different macrostates
 	for(int i = 0; i < simulationsPastEquilibrium; ++i)
 	{
 		//
@@ -446,7 +464,8 @@ double calcAverageSpin(int t)
 	{
 		s += totalMeshSpinPastEquilibrium[t][i];
 	}
-	return s/float(simulationsPastEquilibrium);
+	//return s/float(N*N*simulationsPastEquilibrium); //new
+	return s/float(simulationsPastEquilibrium); //old
 }
 
 double calcAverageSpinSquared(int t)
@@ -456,7 +475,8 @@ double calcAverageSpinSquared(int t)
 	{
 		s += pow(totalMeshSpinPastEquilibrium[t][i], 2.0);
 	}
-	return s/float(simulationsPastEquilibrium);
+	//return s/float(N*N*simulationsPastEquilibrium); //new
+	return s/float(simulationsPastEquilibrium); //old
 }
 
 /*
@@ -469,7 +489,8 @@ double calcAverageEnergy(int t)
 	{
 		E += totalMeshEnergiesPastEquilibrium[t][i];
 	}
-	return E/float(simulationsPastEquilibrium);
+	//return E/float(N*N*simulationsPastEquilibrium); //new (works)
+	return E/float(simulationsPastEquilibrium); //old
 }
 
 double calcAverageEnergySquared(int t)
@@ -479,7 +500,9 @@ double calcAverageEnergySquared(int t)
 	{
 		E += pow(totalMeshEnergiesPastEquilibrium[t][i], 2.0);
 	}
-	return E/float(simulationsPastEquilibrium);
+	//return E/float(N*N*simulationsPastEquilibrium); //new (works)
+	return E/float(simulationsPastEquilibrium); //old
+	//return E;
 }
 
 double calcTotalMicroEnergy(int t, double mu_B)
@@ -511,7 +534,7 @@ double calcPartialSiteEnergy(int x, int y, int t)
 	E_contrib += mesh[t][x][y]*mesh[t][left][y];
 	E_contrib += mesh[t][x][y]*mesh[t][x][up];
 
-	return E_contrib *= J;
+	return E_contrib;
 }
 
 double calcDeltaEnergy(int x, int y, int t)
@@ -578,7 +601,8 @@ double calcMeanSpecificHeatCapacity(double beta, int t)
 	{
 		shc += specificHeatCapacity[i][t];
 	}
-	return shc/float(numberOfSeeds);
+	return shc/float(numberOfSeeds); //old
+	//return shc/float(N*N*numberOfSeeds); //new
 }
 
 /*
@@ -595,9 +619,10 @@ double calcMeanMagneticSusceptibility(double beta, int t)
 	float ms = 0.0;
 	for (int i = 0; i < numberOfSeeds; ++i)
 	{
-		ms += magneticSusceptibility[i][t];
+		ms += abs(magneticSusceptibility[i][t]);
 	}
-	return ms/float(numberOfSeeds);
+	return ms/float(numberOfSeeds); //old
+	//return ms/float(N*N*numberOfSeeds); //new
 }
 
 
