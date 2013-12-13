@@ -2,8 +2,8 @@
 *	SELECT SIMULATIONS TO RUN
 **********************************************/
 
-#define simulateForZeroB false
-#define simulateForNonZeroB true
+#define simulateForZeroB true
+#define simulateForNonZeroB false
 #define simulateForVaryingB false
 
 /*********************************************
@@ -11,7 +11,7 @@
 **********************************************/
 
 //Size of single dimension of mesh
-#define N 20
+#define N 30
 //Number of previous energies kept track of to test for equilibrium
 #define numberPrevEs 3*N
 //number seeds used from rng (max: 15)
@@ -34,29 +34,29 @@
 //Minimum value of beta simulated
 #define beta_min 0.05
 //Maximum value of beta simulated
-#define beta_max 0.5
+#define beta_max 1
 //
-#define nonZeroB 0//0.5*J
+#define nonZeroB 0.5*J
 
 /*********************************************
 *	FOR VARYING mu_B
 **********************************************/
 
 //Increment in beta between simulations
-#define mu_B_step 1.0*J
+#define mu_B_step 0.1
 //Minimum value of beta simulated
-#define mu_B_min -0.5*J
+#define mu_B_min -1
 //Maximum value of beta simulated
-#define mu_B_max 0.5*J
+#define mu_B_max 1
 //set the fixed value of beta for this simulation
-#define fixedBeta 0.25
+#define fixedBeta 0.01
 
 /*********************************************
 *	DETERMINE WHAT THE PROGRAM OUTPUTS
 **********************************************/
-#define outputE true
+#define outputE false
 #define outputM false
 #define outputSHC false
-#define outputMS false
+#define outputMS true
 
 #define outputOneOverBeta false //used to affect the type of plot

@@ -76,7 +76,7 @@ void runSimulation(double, double, ostream&, int, int);
 
 void simulateZeroB(ostream&, int);
 void simulateNonZeroB(ostream&, int);
-void simulateVaryingB(ostream&, int);
+void simulateVaryingB(ostream&, ostream&, int);
 
 void simulateToEquilibrium(double, double);
 void simulatePastEquilibrium(double, double);
@@ -145,14 +145,16 @@ int main()
 	//create filestreams
 	ofstream zeroBFile("data/zeroB.csv");
 	ofstream nonZeroBFile("data/nonZeroB.csv");
-	ofstream varyingZeroBFile("data/varyingBetaZeroB.csv");
+	ofstream varyingBFile1("data/varyingBup.csv");
+	ofstream varyingBFile2("data/varyingBdown.csv");
 
 	//absolutely necessary debugging tool
 	cout << ASCII_batman;
 
 	initOutputFile(zeroBFile);
 	initOutputFile(nonZeroBFile);
-	initOutputFile(varyingZeroBFile);
+	initOutputFile(varyingBFile1);
+	initOutputFile(varyingBFile2);
 	//loop that iterates through rng seeds
 	for (int a = 0; a < numberOfSeeds; ++a)
 	{
@@ -163,7 +165,7 @@ int main()
 		//run appropriate simulations
 		if(simulateForZeroB) simulateZeroB(zeroBFile, a);
 		if(simulateForNonZeroB) simulateNonZeroB(nonZeroBFile, a);
-		if(simulateForVaryingB) simulateVaryingB(varyingZeroBFile, a);
+		if(simulateForVaryingB) simulateVaryingB(varyingBFile1, varyingBFile2, a);
 	}
 
 	//job up!
@@ -204,30 +206,32 @@ void simulateNonZeroB(ostream& outputFile, int a)
 	}
 }
 
-void simulateVaryingB(ostream& outputFile, int a)
+void simulateVaryingB(ostream& outputFile1, ostream& outputFile2, int a)
 {
 	//Constant beta (~T_crit ) - varying B field
-	//initOutputFile(outputFile);
+	int limit = int(mu_B_max/mu_B_step);
 	//fix beta
 	float beta = fixedBeta,
 				mu_B = 0;
 	//increasing magnetic field
-	for (int i = 0; i <= int(mu_B_max/mu_B_step); ++i) {
+	for (int i = 0; i <= limit-i; ++i) {
 		//set magnetic field strength
 		mu_B = mu_B_min+(i*mu_B_step);
 		//run simulation under these conditions
-		runSimulation(beta, mu_B, outputFile, a, 2);
+		runSimulation(beta, mu_B, outputFile1, a, 2);
 		//
 		updateProgress(float(i)/(mu_B_max*2/mu_B_step), a);
 	}
+
 	beta = fixedBeta,
 				mu_B = 0;
 	//decreasing magnetic field
-	for (int i = int(mu_B_max/mu_B_step); i == 0 ; --i) {
+	for (int i = 0; i <= limit; ++i)
+	{
 		//set magnetic field strength
-		mu_B = mu_B_min+(i*mu_B_step);
+		mu_B = mu_B_min+((limit-i)*mu_B_step);
 		//run simulation under these conditions
-		runSimulation(beta, mu_B, outputFile, a, 2);
+		runSimulation(beta, mu_B, outputFile2, a, 2);
 		//
 		updateProgress(float(i)/(mu_B_max*2/mu_B_step), a);
 	}
@@ -633,24 +637,46 @@ double calcMeanMagneticSusceptibility(double beta, int t)
 
 void initOutputFile(ostream& outputFile)
 {
-	if(outputOneOverBeta) outputFile << "T";
-	else 									outputFile << "beta";
-	if(outputE) outputFile << ",E_av (cold),E_av (hot)";
-	if(outputM) outputFile << ",M (cold),M (hot)";
-	if(outputSHC) outputFile << ",SHC (cold),SHC (hot)";
-	if(outputMS) outputFile << ",MS (cold),MS (hot)";
-	outputFile << "\n";
+	if(simulateForVaryingB)
+	{
+		outputFile << "mu_B";
+		if(outputE) outputFile << ",E_av (cold),E_av (hot)";
+		if(outputM) outputFile << ",M (cold),M (hot)";
+		// if(outputSHC) outputFile << ",SHC (cold),SHC (hot)";
+		// if(outputMS) outputFile << ",MS (cold),MS (hot)";
+		outputFile << "\n";
+	} else
+	{
+		if(outputOneOverBeta) outputFile << "T";
+		else 									outputFile << "beta";
+		if(outputE) outputFile << ",E_av (cold),E_av (hot)";
+		if(outputM) outputFile << ",M (cold),M (hot)";
+		if(outputSHC) outputFile << ",SHC (cold),SHC (hot)";
+		if(outputMS) outputFile << ",MS (cold),MS (hot)";
+		outputFile << "\n";
+	}
 }
 
 void outputSystemPropertiesToFile(double beta, double mu_B, ostream& outputFile, int a)
 {
-	if(outputOneOverBeta) outputFile	<< 1/beta;
-	else 									outputFile	<< beta;
-	if(outputE) 	outputFile << "," << calcMeanAverageEnergy(c) << "," << calcMeanAverageEnergy(h);
-	if(outputM) 	outputFile << "," << calcTotalMacroMagnetisation(beta, c) << "," << calcTotalMacroMagnetisation(beta, h);
-	if(outputSHC) outputFile << "," << calcMeanSpecificHeatCapacity(beta, c) << "," << calcMeanSpecificHeatCapacity(beta, h);
-	if(outputMS) 	outputFile << "," << calcMeanMagneticSusceptibility(beta, c) << "," << calcMeanMagneticSusceptibility(beta, h);
-	outputFile << "\n";
+	if(simulateForVaryingB)
+	{
+		outputFile	<< mu_B;
+		if(outputE) 	outputFile << "," << calcMeanAverageEnergy(c) << "," << calcMeanAverageEnergy(h);
+		if(outputM) 	outputFile << "," << calcTotalMacroMagnetisation(beta, c) << "," << calcTotalMacroMagnetisation(beta, h);
+		// if(outputSHC) outputFile << "," << calcMeanSpecificHeatCapacity(beta, c) << "," << calcMeanSpecificHeatCapacity(beta, h);
+		// if(outputMS) 	outputFile << "," << calcMeanMagneticSusceptibility(beta, c) << "," << calcMeanMagneticSusceptibility(beta, h);
+		outputFile << "\n";
+	} else
+	{
+		if(outputOneOverBeta) outputFile	<< 1/beta;
+		else 									outputFile	<< beta;
+		if(outputE) 	outputFile << "," << calcMeanAverageEnergy(c) << "," << calcMeanAverageEnergy(h);
+		if(outputM) 	outputFile << "," << calcTotalMacroMagnetisation(beta, c) << "," << calcTotalMacroMagnetisation(beta, h);
+		if(outputSHC) outputFile << "," << calcMeanSpecificHeatCapacity(beta, c) << "," << calcMeanSpecificHeatCapacity(beta, h);
+		if(outputMS) 	outputFile << "," << calcMeanMagneticSusceptibility(beta, c) << "," << calcMeanMagneticSusceptibility(beta, h);
+		outputFile << "\n";
+	}
 }
 
 /*
