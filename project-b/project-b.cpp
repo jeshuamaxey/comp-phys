@@ -81,7 +81,7 @@ void simulateVaryingB(ostream&, int);
 void simulateToEquilibrium(double, double);
 void simulatePastEquilibrium(double, double);
 void calculateSystemProperties(int, double);
-void metropolisSpinFlip(double, int);
+void metropolisSpinFlip(double, int, double);
 bool atEquilibrium(int, double, int);
 
 //spin functions
@@ -104,7 +104,7 @@ double calcAverageEnergy(int);
 double calcAverageEnergySquared(int);
 double calcTotalMicroEnergy(int, double);
 double calcPartialSiteEnergy(int, int, int);
-double calcDeltaEnergy(int, int, int);
+double calcDeltaEnergy(int, int, int, double);
 double calcMeanAverageEnergy(int);
 
 //magnetisation functions
@@ -192,7 +192,7 @@ void simulateNonZeroB(ostream& outputFile, int a)
 	//Constant (non-zero) B Field - varying beta
 	//initOutputFile(outputFile);
 	//fix mu_B
-	float beta =0, mu_B = 0.5*J;
+	float beta =0, mu_B = nonZeroB;
 	for (int i = 0; i <= int(beta_max/beta_step); ++i)
 	{
 		//set beta
@@ -255,7 +255,7 @@ void simulateToEquilibrium(double beta, double mu_B)
 	//find equilibrium from hot start
 	while(!equilibrium[h])
 	{
-		metropolisSpinFlip(beta, h);
+		metropolisSpinFlip(beta, h, mu_B);
 		equilibrium[h] = atEquilibrium(i, total_mesh_E[h], h);
 		i++;
 	}	//end of while loop for hot start
@@ -264,7 +264,7 @@ void simulateToEquilibrium(double beta, double mu_B)
 	//find equilibrium from cold start
 	while(!equilibrium[c])
 	{
-		metropolisSpinFlip(beta, c);
+		metropolisSpinFlip(beta, c, mu_B);
 		equilibrium[c] = atEquilibrium(i, total_mesh_E[c], c);
 		i++;
 	}	//end of while loop for cold start
@@ -279,8 +279,8 @@ void simulatePastEquilibrium(double beta, double mu_B)
 		//
 		for(int j = 0; j < N*N; ++j)
 		{
-			metropolisSpinFlip(beta, h);
-			metropolisSpinFlip(beta, c);
+			metropolisSpinFlip(beta, h, mu_B);
+			metropolisSpinFlip(beta, c, mu_B);
 		}
 		totalMeshEnergiesPastEquilibrium[h][i] = calcTotalMicroEnergy(h, mu_B);
 		totalMeshSpinPastEquilibrium[h][i] = calcTotalSpin(h);
@@ -312,11 +312,11 @@ void calculateSystemProperties(int a, double beta)
 	specificHeatCapacity[a][c] = calcSpecificHeatCapacity(beta, c, a);
 }
 
-void metropolisSpinFlip(double beta, int t)
+void metropolisSpinFlip(double beta, int t, double mu_B)
 {
 	int x = randInt(N);
 	int y = randInt(N);
-	double dE = calcDeltaEnergy(x,y,t);
+	double dE = calcDeltaEnergy(x,y,t, mu_B);
 	if(dE < 0)
 	{
 		flipSpin(x,y,t);
@@ -537,9 +537,10 @@ double calcPartialSiteEnergy(int x, int y, int t)
 	return E_contrib;
 }
 
-double calcDeltaEnergy(int x, int y, int t)
+double calcDeltaEnergy(int x, int y, int t, double mu_B)
 {
-	return 2.0*calcPartialSiteEnergy(x,y,t);
+	//return 2.0*( calcPartialSiteEnergy(x,y,t) + mu_B*mesh[t][x][y] ); //SCRIDDLE use for all other plots
+	return 2.0*( calcPartialSiteEnergy(x,y,t) ); // use for generating energy plots
 }
 
 double calcMeanAverageEnergy(int t)
