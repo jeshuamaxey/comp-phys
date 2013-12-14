@@ -66,8 +66,8 @@ int seeds[numberOfSeeds];
 double startTime, endTime;												//keep track of how long code took to run
 
 /**** SHAMELESS GLOBAL FILESTREAMS ****/
-ofstream sys_props_file("data/sys_props.csv");
-ofstream debug("data/debug.csv");
+//ofstream sys_props_file("data/sys_props.csv");
+//ofstream debug("data/debug.csv");
 
 /**** FUNCTION PROTOTYPES *************/
 void initOutputFile(ostream&);
@@ -521,7 +521,8 @@ double calcTotalMicroEnergy(int t, double mu_B)
 		}
 	}
 	//multiply by factor at front of equation at end because I am an efficient coder LOLJK
-	return -0.5*J*E_1 - mu_B*E_2;
+	//return -0.5*J*E_1 - mu_B*E_2; //times B field contribution by half //old
+	return -0.5*(E_1 + mu_B*E_2); //times B field contribution by half
 }
 
 double calcPartialSiteEnergy(int x, int y, int t)
@@ -543,8 +544,8 @@ double calcPartialSiteEnergy(int x, int y, int t)
 
 double calcDeltaEnergy(int x, int y, int t, double mu_B)
 {
-	//return 2.0*( calcPartialSiteEnergy(x,y,t) + mu_B*mesh[t][x][y] ); //SCRIDDLE use for all other plots
-	return 2.0*( calcPartialSiteEnergy(x,y,t) ); // use for generating energy plots
+	return 2.0*( calcPartialSiteEnergy(x,y,t) + mu_B*mesh[t][x][y] ); //SCRIDDLE use for all other plots
+	//return 2.0*( calcPartialSiteEnergy(x,y,t) ); // use for generating energy plots
 }
 
 double calcMeanAverageEnergy(int t)
@@ -596,7 +597,7 @@ double calcTotalMacroMagnetisation(double beta, int t)
 */
 double calcSpecificHeatCapacity(double beta, int t, int a)
 {
-	return pow(N, -2.0) * ( (k_b*pow(beta,2.0)) / pow(J,2.0) ) * ( E_s_av[a][t] - pow(E_av[a][t], 2.0));
+	return pow(N, -2.0) *  k_b * pow(beta,2.0) * ( E_s_av[a][t] - pow(E_av[a][t], 2.0));
 }
 
 double calcMeanSpecificHeatCapacity(double beta, int t)
