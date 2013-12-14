@@ -15,7 +15,7 @@
 //Number of previous energies kept track of to test for equilibrium
 #define numberPrevEs 3*N
 //number seeds used from rng (max: 15)
-#define numberOfSeeds 10
+#define numberOfSeeds 15
 //The threshold for percent difference between moving averages.
 //If a difference is below this value, the system is said to have reached equilibrium
 #define pc_diff_max 0.0001
@@ -23,7 +23,7 @@
 #define simulationsPastEquilibrium N*N
 
 //J/(k_b*T) = beta
-#define J 1.0
+#define J 1.0 				//not used in code any longer
 
 /*********************************************
 *	FOR VARYING BETA
@@ -32,26 +32,24 @@
 //Increment in beta between simulations
 #define beta_step 0.005
 //Minimum value of beta simulated
-#define beta_min 0.005
+#define beta_min 0.2
 //Maximum value of beta simulated
-#define beta_max 1.0
+#define beta_max 0.6
 //
-#define non_zero_mu_B 0
-//
-#define fudge 0
+#define nonZeromu_B 0.5
 
 /*********************************************
 *	FOR VARYING mu_B
 **********************************************/
 
 //Increment in beta between simulations
-#define mu_B_step 1.0*J
+#define mu_B_step 0.1
 //Minimum value of beta simulated
-#define mu_B_min -0.5*J
+#define mu_B_min -1
 //Maximum value of beta simulated
-#define mu_B_max 0.5*J
+#define mu_B_max 1
 //set the fixed value of beta for this simulation
-#define fixedBeta 0.25
+#define fixedBeta 0.01
 
 /*********************************************
 *	DETERMINE WHAT THE PROGRAM OUTPUTS
