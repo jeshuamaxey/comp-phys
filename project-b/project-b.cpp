@@ -42,6 +42,10 @@ double specificHeatCapacity[numberOfSeeds][2];								//
 
 double previousEnergies[2][2][numberPrevEs];			//used to record moving averages of energy
 
+//double fixedBeta;
+//int numberOfBetas = 5;
+//double varying_mu_B_beta[numberOfBetas] = {0.01, 0.3, 0.41, 0.7, 0.99};
+
 //char processName[3][64] = {'Simulating zero B','Simulating non-zero B','Simulating varying B'};
 
 int possibleSeeds[15] = {
@@ -95,6 +99,8 @@ int calcTotalSpin(int);
 double calcAverageSpin(int);
 double calcAverageSpinSquared(int);
 
+//bool mu_B_inRangeOfInterest(double);
+
 //random number functions
 gsl_rng* setupUniformRNG(int i);
 int randInt(int);
@@ -133,7 +139,7 @@ void done(double);
 gsl_rng * r_uni;						//default rng instance
 
 
-int main()
+int main(int argc, char* argv[])
 {
 	//fill seeds array
 	for (int i = 0; i < numberOfSeeds; ++i)
@@ -146,16 +152,13 @@ int main()
 	//create filestreams
 	ofstream zeroBFile("data/zeroB.csv");
 	ofstream nonZeroBFile("data/nonZeroB.csv");
-	ofstream varyingBFile1("data/varyingBup.csv");
-	ofstream varyingBFile2("data/varyingBdown.csv");
 
 	//absolutely necessary debugging tool
 	cout << ASCII_batman;
 
 	initOutputFile(zeroBFile);
 	initOutputFile(nonZeroBFile);
-	initOutputFile(varyingBFile1);
-	initOutputFile(varyingBFile2);
+
 	//loop that iterates through rng seeds
 	for (int a = 0; a < numberOfSeeds; ++a)
 	{
@@ -166,7 +169,19 @@ int main()
 		//run appropriate simulations
 		if(simulateForZeroB) simulateZeroB(zeroBFile, a);
 		if(simulateForNonZeroB) simulateNonZeroB(nonZeroBFile, a);
-		if(simulateForVaryingB) simulateVaryingB(varyingBFile1, varyingBFile2, a);
+		if(simulateForVaryingB)
+		{
+			stringstream filenameup;
+			stringstream filenamedown;
+			filenameup << "data/varyingBup_beta=" << fixedBeta << ".csv";
+			filenamedown << "data/varyingBdown_beta=" << fixedBeta << ".csv";
+			ofstream varyingBFile1(filenameup.str());
+			ofstream varyingBFile2(filenamedown.str());
+			initOutputFile(varyingBFile1);
+			initOutputFile(varyingBFile2);
+			
+			simulateVaryingB(varyingBFile1, varyingBFile2, a);
+		}
 	}
 
 	//job up!
@@ -210,31 +225,29 @@ void simulateNonZeroB(ostream& outputFile, int a)
 void simulateVaryingB(ostream& outputFile1, ostream& outputFile2, int a)
 {
 	//Constant beta (~T_crit ) - varying B field
-	int limit = int(mu_B_max/mu_B_step);
+	int limit = int((mu_B_max-mu_B_min)/mu_B_step);
 	//fix beta
 	float beta = fixedBeta,
 				mu_B = 0;
 	//increasing magnetic field
-	for (int i = 0; i <= limit-i; ++i) {
-		//set magnetic field strength
+	for (int i = 0; i <= limit; ++i)
+	{
 		mu_B = mu_B_min+(i*mu_B_step);
 		//run simulation under these conditions
 		runSimulation(beta, mu_B, outputFile1, a, 2);
 		//
-		updateProgress(float(i)/(mu_B_max*2/mu_B_step), a);
+		updateProgress(i/(mu_B_max*2/mu_B_step), a);
 	}
-
+	//reset variables
 	beta = fixedBeta,
-				mu_B = 0;
-	//decreasing magnetic field
+	mu_B = 0;
 	for (int i = 0; i <= limit; ++i)
 	{
-		//set magnetic field strength
 		mu_B = mu_B_min+((limit-i)*mu_B_step);
 		//run simulation under these conditions
 		runSimulation(beta, mu_B, outputFile2, a, 2);
 		//
-		updateProgress(float(i)/(mu_B_max*2/mu_B_step), a);
+		updateProgress(i/(mu_B_max*2/mu_B_step), a);
 	}
 }
 
@@ -469,8 +482,7 @@ double calcAverageSpin(int t)
 	{
 		s += totalMeshSpinPastEquilibrium[t][i];
 	}
-	//return s/float(N*N*simulationsPastEquilibrium); //new
-	return s/float(simulationsPastEquilibrium); //old (produces MS correctly)
+	return s/float(simulationsPastEquilibrium);
 }
 
 double calcAverageSpinSquared(int t)
@@ -480,9 +492,17 @@ double calcAverageSpinSquared(int t)
 	{
 		s += pow(totalMeshSpinPastEquilibrium[t][i], 2.0);
 	}
-	//return s/float(N*N*simulationsPastEquilibrium); //new
-	return s/float(simulationsPastEquilibrium); //old (produces MS correctly)
+	return s/float(simulationsPastEquilibrium);
 }
+
+/*
+*
+*/
+
+// bool mu_B_inRangeOfInterest(double mu_B)
+// {
+// 	return (mu_B < mu_B_upperLimit && mu_B > mu_B_lowerLimit) ? true : false;
+// }
 
 /*
 *	ENERGY FUNCTIONS
@@ -494,8 +514,7 @@ double calcAverageEnergy(int t)
 	{
 		E += totalMeshEnergiesPastEquilibrium[t][i];
 	}
-	//return E/float(N*N*simulationsPastEquilibrium); //new (works)
-	return E/float(simulationsPastEquilibrium); //old (works better)
+	return E/float(simulationsPastEquilibrium);
 }
 
 double calcAverageEnergySquared(int t)
@@ -505,8 +524,7 @@ double calcAverageEnergySquared(int t)
 	{
 		E += pow(totalMeshEnergiesPastEquilibrium[t][i], 2.0);
 	}
-	//return E/float(N*N*simulationsPastEquilibrium); //new (works)
-	return E/float(simulationsPastEquilibrium); //old (works better)
+	return E/float(simulationsPastEquilibrium);
 }
 
 double calcTotalMicroEnergy(int t, double mu_B)
@@ -521,8 +539,7 @@ double calcTotalMicroEnergy(int t, double mu_B)
 		}
 	}
 	//multiply by factor at front of equation at end because I am an efficient coder LOLJK
-	//return -0.5*J*E_1 - mu_B*E_2; //times B field contribution by half //old
-	return -0.5*(E_1 + mu_B*E_2); //times B field contribution by half
+	return -0.5*(E_1 + mu_B*E_2);
 }
 
 double calcPartialSiteEnergy(int x, int y, int t)
@@ -723,7 +740,7 @@ void done(double mu_B)
 						<< "-------------------------------------------------------------\n"
 						<< "Varying beta, no magnetic field\t\t\t" << (simulateForZeroB ? "YES\n" : "NO\n")
 						<< "Varying beta, constant magnetic field\t\t" << (simulateForNonZeroB ? "YES\t" : "NO\t") << "mu_B = " << mu_B << "\n"
-						<< "Constant beta, varying magnetic field\t\t" << (simulateForVaryingB ? "YES\n" : "NO\n")
+						<< "Constant beta, varying magnetic field\t\t" << (simulateForVaryingB ? "YES\n" : "NO\n") << "fixedBeta = " << fixedBeta << "\n"
 						<< "=============================================================\n\n"
 						<< "=============================================================\n"
 						<< "Property\t\t\t\t\tOutputted\n"
