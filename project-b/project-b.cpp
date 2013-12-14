@@ -179,35 +179,32 @@ void simulateZeroB(ostream& outputFile, int a)
 	//initOutputFile(outputFile);
 	//fix mu_B
 	float beta =0, mu_B = 0;
-	for (int i = 0; i <= int(beta_max/beta_step); ++i)
+	for (int i = 0; i <= int((beta_max-beta_min)/beta_step); ++i)
 	{
 		//set beta
 		beta = beta_min+(i*beta_step);
 		//run simulation under these conditions
 		runSimulation(beta, mu_B, outputFile, a, 0);
 		//
-		updateProgress(float(i)/(beta_max/beta_step), a);
+		updateProgress(float(i)/((beta_max-beta_min)/beta_step), a);
 	}
 }
 
-double simulateNonZeroB(ostream& outputFile, int a)
+void simulateNonZeroB(ostream& outputFile, int a)
 {
 	//Constant (non-zero) B Field - varying beta
 	//initOutputFile(outputFile);
 	//fix mu_B
-	float beta =0, mu_B = non_zero_mu_B;
-	float beta =0, mu_B = nonZeromu_B;
-	for (int i = 0; i <= int(beta_max/beta_step); ++i)
+	float beta =0, mu_B = nonZero_mu_B;
+	for (int i = 0; i <= int((beta_max-beta_min)/beta_step); ++i)
 	{
 		//set beta
 		beta = beta_min+(i*beta_step);
 		//run simulation under these conditions
 		runSimulation(beta, mu_B, outputFile, a, 1);
 		//
-		updateProgress(float(i)/(beta_max/beta_step), a);
+		updateProgress(float(i)/((beta_max-beta_min)/beta_step), a);
 	}
-	//
-	return mu_B;
 }
 
 void simulateVaryingB(ostream& outputFile1, ostream& outputFile2, int a)
@@ -472,8 +469,8 @@ double calcAverageSpin(int t)
 	{
 		s += totalMeshSpinPastEquilibrium[t][i];
 	}
-	return s/float(N*N*simulationsPastEquilibrium); //new
-	//return s/float(simulationsPastEquilibrium); //old
+	//return s/float(N*N*simulationsPastEquilibrium); //new
+	return s/float(simulationsPastEquilibrium); //old (produces MS correctly)
 }
 
 double calcAverageSpinSquared(int t)
@@ -483,8 +480,8 @@ double calcAverageSpinSquared(int t)
 	{
 		s += pow(totalMeshSpinPastEquilibrium[t][i], 2.0);
 	}
-	return s/float(N*N*simulationsPastEquilibrium); //new
-	//return s/float(simulationsPastEquilibrium); //old
+	//return s/float(N*N*simulationsPastEquilibrium); //new
+	return s/float(simulationsPastEquilibrium); //old (produces MS correctly)
 }
 
 /*
@@ -497,8 +494,8 @@ double calcAverageEnergy(int t)
 	{
 		E += totalMeshEnergiesPastEquilibrium[t][i];
 	}
-	return E/float(N*N*simulationsPastEquilibrium); //new (works)
-	//return E/float(simulationsPastEquilibrium); //old
+	//return E/float(N*N*simulationsPastEquilibrium); //new (works)
+	return E/float(simulationsPastEquilibrium); //old (works better)
 }
 
 double calcAverageEnergySquared(int t)
@@ -508,8 +505,8 @@ double calcAverageEnergySquared(int t)
 	{
 		E += pow(totalMeshEnergiesPastEquilibrium[t][i], 2.0);
 	}
-	return E/float(N*N*simulationsPastEquilibrium); //new (works)
-	//return E/float(simulationsPastEquilibrium); //old
+	//return E/float(N*N*simulationsPastEquilibrium); //new (works)
+	return E/float(simulationsPastEquilibrium); //old (works better)
 }
 
 double calcTotalMicroEnergy(int t, double mu_B)

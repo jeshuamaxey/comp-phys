@@ -2,8 +2,8 @@
 *	SELECT SIMULATIONS TO RUN
 **********************************************/
 
-#define simulateForZeroB true
-#define simulateForNonZeroB false
+#define simulateForZeroB false							// all of these plots are as expected :)
+#define simulateForNonZeroB true
 #define simulateForVaryingB false
 
 /*********************************************
@@ -11,11 +11,11 @@
 **********************************************/
 
 //Size of single dimension of mesh
-#define N 15
+#define N 20
 //Number of previous energies kept track of to test for equilibrium
 #define numberPrevEs 3*N
 //number seeds used from rng (max: 15)
-#define numberOfSeeds 15
+#define numberOfSeeds 10
 //The threshold for percent difference between moving averages.
 //If a difference is below this value, the system is said to have reached equilibrium
 #define pc_diff_max 0.0001
@@ -32,11 +32,11 @@
 //Increment in beta between simulations
 #define beta_step 0.005
 //Minimum value of beta simulated
-#define beta_min 0.2
+#define beta_min 0.001
 //Maximum value of beta simulated
 #define beta_max 0.6
 //
-#define nonZeromu_B 0.5
+#define nonZero_mu_B 0.5
 
 /*********************************************
 *	FOR VARYING mu_B
@@ -54,9 +54,9 @@
 /*********************************************
 *	DETERMINE WHAT THE PROGRAM OUTPUTS
 **********************************************/
-#define outputE true
+#define outputE false
 #define outputM false
 #define outputSHC false
-#define outputMS false
+#define outputMS true
 
 #define outputOneOverBeta false //used to affect the type of plot
