@@ -75,7 +75,7 @@ void initOutputFile(ostream&);
 void runSimulation(double, double, ostream&, int, int);
 
 void simulateZeroB(ostream&, int);
-void simulateNonZeroB(ostream&, int);
+double simulateNonZeroB(ostream&, int);
 void simulateVaryingB(ostream&, int);
 
 void simulateToEquilibrium(double, double);
@@ -125,7 +125,7 @@ void outputSystemPropertiesToFile(double, double, ostream&, int);
 
 //helper functions
 void updateProgress(double, int); 	//expects a fraction of completion
-void done();
+void done(double);
 
 
 //for gsl rng help see here:
@@ -142,6 +142,7 @@ int main()
 	}
 	//log start time
 	startTime = GetTimeMs64();
+	double mu_B = 0.0;
 	//create filestreams
 	ofstream zeroBFile("data/zeroB.csv");
 	ofstream nonZeroBFile("data/nonZeroB.csv");
@@ -162,12 +163,12 @@ int main()
 		initialiseSpins();
 		//run appropriate simulations
 		if(simulateForZeroB) simulateZeroB(zeroBFile, a);
-		if(simulateForNonZeroB) simulateNonZeroB(nonZeroBFile, a);
+		if(simulateForNonZeroB) mu_B = simulateNonZeroB(nonZeroBFile, a);
 		if(simulateForVaryingB) simulateVaryingB(varyingZeroBFile, a);
 	}
 
 	//job up!
-	done();
+	done(mu_B);
 }
 
 void simulateZeroB(ostream& outputFile, int a)
@@ -187,12 +188,12 @@ void simulateZeroB(ostream& outputFile, int a)
 	}
 }
 
-void simulateNonZeroB(ostream& outputFile, int a)
+double simulateNonZeroB(ostream& outputFile, int a)
 {
 	//Constant (non-zero) B Field - varying beta
 	//initOutputFile(outputFile);
 	//fix mu_B
-	float beta =0, mu_B = 0.5*J;
+	float beta =0, mu_B = non_zero_mu_B;
 	for (int i = 0; i <= int(beta_max/beta_step); ++i)
 	{
 		//set beta
@@ -202,6 +203,8 @@ void simulateNonZeroB(ostream& outputFile, int a)
 		//
 		updateProgress(float(i)/(beta_max/beta_step), a);
 	}
+	//
+	return mu_B;
 }
 
 void simulateVaryingB(ostream& outputFile, int a)
@@ -464,8 +467,8 @@ double calcAverageSpin(int t)
 	{
 		s += totalMeshSpinPastEquilibrium[t][i];
 	}
-	//return s/float(N*N*simulationsPastEquilibrium); //new
-	return s/float(simulationsPastEquilibrium); //old
+	return s/float(N*N*simulationsPastEquilibrium); //new
+	//return s/float(simulationsPastEquilibrium); //old
 }
 
 double calcAverageSpinSquared(int t)
@@ -475,8 +478,8 @@ double calcAverageSpinSquared(int t)
 	{
 		s += pow(totalMeshSpinPastEquilibrium[t][i], 2.0);
 	}
-	//return s/float(N*N*simulationsPastEquilibrium); //new
-	return s/float(simulationsPastEquilibrium); //old
+	return s/float(N*N*simulationsPastEquilibrium); //new
+	//return s/float(simulationsPastEquilibrium); //old
 }
 
 /*
@@ -489,8 +492,8 @@ double calcAverageEnergy(int t)
 	{
 		E += totalMeshEnergiesPastEquilibrium[t][i];
 	}
-	//return E/float(N*N*simulationsPastEquilibrium); //new (works)
-	return E/float(simulationsPastEquilibrium); //old
+	return E/float(N*N*simulationsPastEquilibrium); //new (works)
+	//return E/float(simulationsPastEquilibrium); //old
 }
 
 double calcAverageEnergySquared(int t)
@@ -500,9 +503,8 @@ double calcAverageEnergySquared(int t)
 	{
 		E += pow(totalMeshEnergiesPastEquilibrium[t][i], 2.0);
 	}
-	//return E/float(N*N*simulationsPastEquilibrium); //new (works)
-	return E/float(simulationsPastEquilibrium); //old
-	//return E;
+	return E/float(N*N*simulationsPastEquilibrium); //new (works)
+	//return E/float(simulationsPastEquilibrium); //old
 }
 
 double calcTotalMicroEnergy(int t, double mu_B)
@@ -581,7 +583,7 @@ double calcTotalMacroMagnetisation(double beta, int t)
 	double M = 0.0;
 	for (int i = 0; i < simulationsPastEquilibrium; ++i)
 	{
-		M += abs(totalMeshMagnetisationPastEquilibrium[t][i]);
+		M += totalMeshMagnetisationPastEquilibrium[t][i];
 	}
 	return M/(N*N);
 }
@@ -676,7 +678,7 @@ void updateProgress(double progress, int a)
 }
 
 //displays done message to terminal
-void done()
+void done(double mu_B)
 {
 	std::cout.precision(3);
 	std::cout << std::fixed << "\r\n\n"
@@ -694,7 +696,7 @@ void done()
 						<< "Simulation\t\t\t\t\tRun\n"
 						<< "-------------------------------------------------------------\n"
 						<< "Varying beta, no magnetic field\t\t\t" << (simulateForZeroB ? "YES\n" : "NO\n")
-						<< "Varying beta, constant magnetic field\t\t" << (simulateForNonZeroB ? "YES\n" : "NO\n")
+						<< "Varying beta, constant magnetic field\t\t" << (simulateForNonZeroB ? "YES\t" : "NO\t") << "mu_B = " << mu_B << "\n"
 						<< "Constant beta, varying magnetic field\t\t" << (simulateForVaryingB ? "YES\n" : "NO\n")
 						<< "=============================================================\n\n"
 						<< "=============================================================\n"
