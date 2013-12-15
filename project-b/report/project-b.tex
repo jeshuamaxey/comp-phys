@@ -1,0 +1,143 @@
+\documentclass[11pt]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{a4paper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+								% TeX will automatically convert eps --> pdf in pdflatex		
+\usepackage{amssymb}
+
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+%
+
+\usepackage[nottoc]{tocbibind} %for table of contents
+\usepackage{amsmath}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{verbatim} %for multiline comments
+\usepackage{ulem}
+
+\title{Ising Model}
+\author{Joshua Maxey}
+%\date{}							% Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+\begin{centering}
+\begin{comment}
+FOUR PROPS (E, M, SHC AND MS) WERE RECORDED FOR AT THE END OF MULTIPLE AVERAGED SIMULATIONS VARYING BETA (TEMP ANALOGUE) FOR ZERO AND CONSTANT NON ZERO B FIELD BEFOREMOVING OTO FIXING BETA AND VARYING THE MAGNETIC FIELD IN BOTH DIRECTIONS IE INC AND DEC B FIELD
+\end{comment}
+\it{The effects of temperature, constant external magnetic field and a varying external magnetic field on a ferromagnetic material were investigated. The Ising model and Monte Carlo SOMETHING ABOUT METROPOLIS ALGORITHM were employed bla blah blah}
+\end{centering}
+\section{Introduction}
+Computational Physics facilitate the modeling of large complex physical systems. However, even with powerful computers, the scale of the modeled systems often impose limits on the feasibility of accurately calculating exact properties. Simulating a ferromagnet at different temperatures within different magnetic fields in two dimensions is one such example of this. For other systems, there does not exist an analytical solution to compute. Monte Carlo methods use random numbers to statistically model such systems and solve deterministic problems.
+
+\section{Theory}
+The Ising model describes ferromagnetic materials as a two dimensional lattice of domains which can take one of two values, spine up or spin down. Each of these spin's interaction with every other spin in the lattice and each spin's interaction with an external magnetic field, contribute to the system's total energy. This is quantified in equation \ref{eq:totalE} where \textbf{$S_i$} is the spin at the $i^{th}$ site, $J_{i,j}$ the interaction energy between sites $i$ and $j$, $\mu$ is the Bohr magneton and $B$ is the magnetic field strength. Note that for ferromagnets, J \textgreater \space 0.
+
+\begin{equation} \label{eq:totalE}
+E = -\frac{1}{2}\sum\limits_{i,j}J_{i,j}S_i \cdot S_j - \mu \sum\limits_{k}S_k \cdot B
+\end{equation}
+
+In ferromagnets, the lowest energetic state (which is exhibited at low temperatures) is to have all spins aligned. This is due to the negative contribution of the iteration energies to the total energy for $J$ \textgreater \space 0. For higher temperatures, spins begin to flip and are no longer all aligned. As the temperature is raised further, all alignment is lost and the domains are randomly aligned. At this stage the ferromagnet has lost all magnetisation and is said to have \textquotedblleft melted\textquotedblright.
+
+A system of $K$ domains quickly becomes too costly to model for any reasonably sized lattice as the number of possible configurations is determined by $2^K$. Instead a probabilistic approach is adopted, employing a Monte Carlo method to accept or reject spin configurations based on their statistical probability which itself is a function of the lattice's current total energy. The probability of the system being in any given microstate $\alpha_i$ is given in equation \ref{eq:boltzmann}.
+
+\begin{equation} \label{eq:boltzmann}
+\mathcal{P}(\alpha_i) = \frac{e^{E(\alpha_i)/k_B T}}{Z} \text{\space\space where\space\space} Z = \sum\limits_{\alpha_i}e^{E(\alpha_i)/k_B T} 
+\end{equation}
+
+The magnetisation of the system, $M$, can be found exactly using equation \ref{eq:magnetisation}.
+
+\begin{equation} \label{eq:magnetisation}
+M = N^{-2}\sum\limits_{k}S_k
+\end{equation}
+
+Specific heat capacity (at constant volume) and magnetic susceptibility are second derivatives of the Helmholtz free energy and spin respectively, with respect to temperature. As such, they are calculated using equations \ref{eq:shc} and \ref{eq:ms} using the variance of energy and magnetisation to minimise the effect of statistically noise introduced by the Monte Carlo method. These equations can be derived by considering the system as a canonical ensemble and relating differentials to appropriate variances \cite{ohio state}.
+
+\begin{equation} \label{eq:shc}
+C = N^{-2}\left(k_B T\right)^{-2} \left(\langle E^2 \rangle - \langle E\rangle^2 \right)
+\end{equation}
+
+\begin{equation} \label{eq:ms}
+\chi = N^{-2}\frac{J}{k_B T}\left( \langle S^2 \rangle - \langle S\rangle^2  \right)
+\end{equation}
+
+The Curie temperature, $T_C$, is the temperature beyond which thermal vibrations over power the tendency for domains of a ferromagnet to align. This is the \textquoteleft melting point\textquoteright previously eluded to. For this project, $\beta = \frac{J}{k_B T}$ is used instead of $T$ and equations \ref{eq:totalE} and \ref{eq:ms} are rescaled to yield values in units of $J$. For $\beta$ lower than $\beta_C = \frac{J}{k_B T_C}$, all magnetism must therefore be induced by an externally applied magnetic field. It is also the point at which phase transitions occur. $E$ and $M$ plotted versus $\beta$ will have steep gradients at $\beta_C$ whereas $C$ and $\chi$ will exhibit sharp peaks. In the limit of $N \rightarrow \infty$ these steep gradients would become step functions and the peaks of $C$ and $\chi$ would become Dirac delta functions at $\beta_C$.
+
+\section{Method}
+Two meshes of $N \times N$ domains were modeled with each domain able to take the value of spin up (+1) or spin down (-1). One mesh was initialised with a \textquoteleft hot start\textquoteright, randomly distributed up and down spins across the lattice, while the other had a \textquoteleft cold start \textquoteright, aligning all spins in the same direction (+1). % add figure of starts
+
+Periodic boundary conditions (assuming the top of the lattice is connected to the bottom and the left to the right) were employed to avoid \textquoteleft end effects\textquoteright.
+
+Three simulations were run to investigate the effects of varying certain parameters on the system's properties. For each simulation, the meshes, once initialised, had their total energy and magnetisation calculated.
+
+A metropolis algorithm was then used to determine whether to flip a randomly selected spin\footnote{The GNU Scientific Library random number generator was used for this project\cite{gsl}}. The change in energy, $\delta E$ that would result from flipping the spin was calculated. If $\delta E < 0$ the spin was flipped. If $\delta E > 0$, a random number $r$ between 0 and 1 was generated. If $ r < e^{\frac{\delta E}{k_B T}} $ then the was spin flipped, otherwise the system was left unchanged.
+
+To determine when equilibrium had been reached, moving averages of $3N$ consecutive energies of mesh microstates were recorded at intervals of $3N$ microstates apart (ie. wait $3N$ potential changes in microstate, record $3N$ consecutive microstate energies, wait another $3N$ potential changes in microstate, record another $3N$ consecutive microstate energies). After each new average was calculated, it was compared against the previous average and if the percentage difference was less than 0.01\% the system was deemed to have reached equilibrium.
+
+At this point, the model was run for a further $N^2$ iterations before a value for $E$, $M$ and total spin $S$ were recorded. A total of $N^2$ such recordings were taken at $N^2$ iterations apart to ensure that the values were for distinct macrostates of the system. These were then averaged and used to calculate values for $E$, $M$, $C$ and $\chi$ for the lattice at a specific $\beta$ value.
+
+This entire process was repeated 15 times using a different seed for the random number generator each time to smooth as much statistical noise from the data as possible. An arithmetic mean of the resultant values of $E$, $M$, $C$ and $\chi$ was then written to file for analysis.
+
+For the first two simulations, the magnetic field strength was fixed at $\mu B = 0$ and $\mu B = 0.5J$ while $\beta$ ranged from 0 to 1.0 at intervals of 0.005. For the third, $\beta$ was fixed at a number of values informed by the first two simulations while $B$ was varied from -1 to 1 and then from 1 to -1 to investigate the effect of the direction of a changing magnetic field on the system.
+
+\section{Results \& Discussion}
+\subsection{Zero Magnetic Field, Varying $\beta$}
+For simulations with no external magnetic field, $N$ was set 70. Hence the moving averages were of 210 values spaced 210 possible microstate changes apart. 
+% FIGURE OF E VS BETA FOR HOT & COLD START
+%	\label{fig:E v beta B0}
+Figure \ref{fig:E v beta B0} shows how the system's energy increases with rising temperature (falling $\beta$). This is due to the additional thermal energy which allows for spins to flip even if the contribution to the total energy due to such a change in microstate is positive.
+
+For $\beta > \beta_C$, the magnetisation is exactly 1 (or -1) as all the spins align in the same direction. As the temperature rises towards $\beta_C$, the material undergoes a phase transition and rapidly loses all magnetisation as spins gain enough thermal energy to overcome the magnet's energetic preference to have all it's spins aligned. At this point, the spins are effectively randomly distributed up or down so $M$ becomes zero as the number of up spins almost exactly cancels out the number of down spins. Figure \ref{fig:M v beta B0} shows this transition. Note however that the curvature of the line is due to the finite limit of the model. We would expect figure \ref{fig:M v beta B0} to tend to a step function as $N \rightarrow \infty$.
+% FIGURE OF M VS BETA FOR HOT & COLD START
+%\ref{fig:M v beta B0}
+
+Figure \ref{fig:C v beta B0} shows how the specific heat capacity becoming discontinuous at $\beta_C$. This is to be expected as the gradient of energy versus $\beta$ becomes infinite at $\beta_C$ and $C$ is the second derivative of free energy with respect to temperature. This plot was used to determine a value of XXXX PLUS MINUS XXXX for $\beta_C$. %TALK MORE ABOUT THIS
+
+$\chi$ exhibits similar behaviour to $C$ as $\beta$ is varied from 0 to 1. $\chi$, being the second derivative of spin is also discontinuous at $\beta_C$
+%
+%	WRITE MORE SHIT
+%	MENTION BOTH DIRECTION MAG FIELDS
+%
+\subsection{Constant, Non-zero Magnetic Field, Varying $\beta$}
+The system was next modeled for a constant external magnetic field of $\mu B = 0.5J$ where $\mu$ is the Bohr magneton. For these SIMULTAIONS WHAT WAS THE BETA RANGE AGIN!!!!!!!!!!!
+
+Figure \ref{fig:E v beta Bhalf} shows a comparison of the $\mu B=0$ system and the $\mu B = 0.5J$ system. Both energies follow a a similar trend with higher temperatures incurring higher total energies. However at lower temperatures, the total energies differ as thermal fluctuations cease to negate the effect of the magnetic field. The energy contribution of the field due to its interactions with the spins is no longer negligible as it was for high temperatures and a clear difference in total energies is observed for all but the lowest $\beta$ values.
+%FIGURE \label{fig:E v beta Bhalf}
+
+Figure \ref{fig:M v beta Bhalf} shows the same comparison for the magnetisation of the system. This time, in the presence of an external magnetic field, the temperature at which the phase transition occurs is higher. The curve is also smoother due to the magnetic field dictating the direction in which spins align as soon as thermal vibrations cease to govern their direction. Whereas previously spins would form clusters in either direction as the substance was cooled before all suddenly aligning (as shown in figure \ref{fig:M v beta B0}), this time round, as each domain's direction becomes no longer governed by thermal energy, the magnetic field ensures there is a preferred direction.
+
+%FIGURE \ref{fig:C v beta Bhalf}
+The fact that $E$ is no longer discontinuous means that the specific heat capacity is no longer defined by a Dirac delta function. Instead, it has a finite peak which is also shifted in the negative $\beta$ direction relative to the $\mu B = 0$ plot. The lower peak is due the spins interacting with the magnetic field, diminishing their ability to store energy. The shift of the peak indicates a lower $\beta_C$ for this system which accounts for the added energy the spins require to overcome their interactions with the external field and fully \textquoteleft melt\textquoteright.
+
+%MAGNETIC SUSCEPTIBILY
+Similarly for $\chi$, now that in the presence of a magnetic field $M$ is continuous, the peak in magnetic susceptibility is far less pronounced. As the slope $M$ versus $\beta$ is much flatter, the maximum value of $\chi$ is also far less than it was with no magnetic field and its temperature dependence no longer conforms to a Dirac delta function for large $N$.
+
+\subsection{Varying Magnetic Field Multiple Fixed $\beta$ Values}
+The final simulations investigated the effect of the external magnetic field's strength on the energy of the system for a number of fixed values of $\beta$. 5 values for $\beta$ were modeled; 0.3 and 0.01 (high and extremely high temperature), 0.7 and 0.99 (low and extremely low temperature), and $\beta = \beta_C = XXX$ to examine the system at close to the Curie temperature. For each value of $\beta$ the magnetic field was varied from $\mu B = -1$ to +1 and from +1 to -1.
+
+As shown in figure \ref{fig:E vs muB}, $E$ is continuous for temperatures above the Curie point. The curves for these temperatures do not differ depending on whether the field increases from $\mu B = -1$ or decreases from $\mu B = 1$ and is maximised at $\mu B = 0$.
+
+In contrast, for temperatures lower than the Curie point, the increasing and decreasing field yielded different, but symmetric, plots for total energy. Discontinuities arise due to the system retaining alignment of spin in spite of an opposing magnetic field. However at the point where this field becomes strong enough to force the spins to align with it, the domains suddenly flip and the system has a much lower total energy very suddenly. This point happens sooner (ie at smaller values of $\left|\mu B\right|$) at higher temperatures (higher $\beta$) due to there being more thermal energy to encourage the domains to align with the external field.
+
+For $\beta \sim \beta_C$
+
+\section{Refinements}
+The size of the mesh imposes a limit on the accuracy to which $\beta_C$ can be found. Increasing $N$ requires more time to calculate the results of a simulation, as does reducing the step size of $\beta$. While both of these modifications would result in more accurate results, the consequential increase in time the program would require meant that for the time scale of this project, $35 < N < 70$ and $\delta \beta \sim 0.001$ were optimal.
+
+Each simulation was run 15 times using different seeds for the random number generator. Increasing the number of seeds further would reduce the statistical noise inherent in the Monte Carlo sampling method employed. It is worth noting that the Ising model for ferromagnets cannot be applied to domains extending in three dimensions.
+
+\section{Conclusion}
+
+\begin{thebibliography}{10}
+\bibitem{script} 
+\bibitem{ohio state} \texttt{http://www.physics.ohio-state.edu/ntg/780/readings/hjorth-jensen\_notes2009\_10.pdf} - accessed 14/12/2013
+\bibitem{gsl} - The GNU Scientific Library (C++) \texttt{http://www.gnu.org/software/gsl/} - access 14/12/2013
+\end{thebibliography}
+
+
+
+\end{document}  
