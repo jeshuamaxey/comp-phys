@@ -484,7 +484,7 @@ double calcAverageSpin(int t)
 	{
 		s += totalMeshSpinPastEquilibrium[t][i];
 	}
-	return s/float(simulationsPastEquilibrium);
+	return s/float(N*N*simulationsPastEquilibrium); //scriddle
 }
 
 double calcAverageSpinSquared(int t)
@@ -494,17 +494,8 @@ double calcAverageSpinSquared(int t)
 	{
 		s += pow(totalMeshSpinPastEquilibrium[t][i], 2.0);
 	}
-	return s/float(simulationsPastEquilibrium);
+	return s/float(N*N*simulationsPastEquilibrium); //scriddle
 }
-
-/*
-*
-*/
-
-// bool mu_B_inRangeOfInterest(double mu_B)
-// {
-// 	return (mu_B < mu_B_upperLimit && mu_B > mu_B_lowerLimit) ? true : false;
-// }
 
 /*
 *	ENERGY FUNCTIONS
