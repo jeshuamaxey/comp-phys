@@ -150,14 +150,14 @@ int main(int argc, char* argv[])
 	startTime = GetTimeMs64();
 	double mu_B = 0.0;
 	//create filestreams
-	ofstream zeroBFile("data/zeroB.csv");
-	ofstream nonZeroBFile("data/nonZeroB.csv");
+	ofstream zeroBFile("data/zeroB_N70_beta0pt001-1.csv");
+	//ofstream nonZeroBFile("data/nonZeroB.csv");
 
 	//absolutely necessary debugging tool
 	cout << ASCII_batman;
 
 	initOutputFile(zeroBFile);
-	initOutputFile(nonZeroBFile);
+	//initOutputFile(nonZeroBFile);
 
 	//loop that iterates through rng seeds
 	for (int a = 0; a < numberOfSeeds; ++a)
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
 		r_uni = setupUniformRNG(a);
 		//run appropriate simulations
 		if(simulateForZeroB) simulateZeroB(zeroBFile, a);
-		if(simulateForNonZeroB) simulateNonZeroB(nonZeroBFile, a);
+		//if(simulateForNonZeroB) simulateNonZeroB(nonZeroBFile, a);
 		if(simulateForVaryingB)
 		{
 			stringstream filenameup;
