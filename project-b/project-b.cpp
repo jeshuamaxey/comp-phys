@@ -106,8 +106,8 @@ gsl_rng* setupUniformRNG(int i);
 int randInt(int);
 
 //energy functions
-double calcAverageEnergy(int);
-double calcAverageEnergySquared(int);
+double calcEnergy(int);
+double calcEnergySquared(int);
 double calcTotalMicroEnergy(int, double);
 double calcPartialSiteEnergy(int, int, int);
 double calcDeltaEnergy(int, int, int, double);
@@ -164,8 +164,6 @@ int main(int argc, char* argv[])
 	{
 		//reset random number generator
 		r_uni = setupUniformRNG(a);
-		//align spins
-		initialiseSpins();
 		//run appropriate simulations
 		if(simulateForZeroB) simulateZeroB(zeroBFile, a);
 		if(simulateForNonZeroB) simulateNonZeroB(nonZeroBFile, a);
@@ -191,7 +189,8 @@ int main(int argc, char* argv[])
 void simulateZeroB(ostream& outputFile, int a)
 {
 	//Zero B Field - varying beta
-	//initOutputFile(outputFile);
+	//align spins
+	initialiseSpins();
 	//fix mu_B
 	float beta =0, mu_B = 0;
 	for (int i = 0; i <= int((beta_max-beta_min)/beta_step); ++i)
@@ -208,7 +207,8 @@ void simulateZeroB(ostream& outputFile, int a)
 void simulateNonZeroB(ostream& outputFile, int a)
 {
 	//Constant (non-zero) B Field - varying beta
-	//initOutputFile(outputFile);
+	//align spins
+	initialiseSpins();
 	//fix mu_B
 	float beta =0, mu_B = nonZero_mu_B;
 	for (int i = 0; i <= int((beta_max-beta_min)/beta_step); ++i)
@@ -224,6 +224,8 @@ void simulateNonZeroB(ostream& outputFile, int a)
 
 void simulateVaryingB(ostream& outputFile1, ostream& outputFile2, int a)
 {
+	//align spins
+	initialiseSpins();
 	//Constant beta (~T_crit ) - varying B field
 	int limit = int((mu_B_max-mu_B_min)/mu_B_step);
 	//fix beta
@@ -312,13 +314,13 @@ void simulatePastEquilibrium(double beta, double mu_B)
 
 void calculateSystemProperties(int a, double beta)
 {
-	E_av[a][h] 		= calcAverageEnergy(h);
-	E_s_av[a][h] 	= calcAverageEnergySquared(h);
+	E_av[a][h] 		= calcEnergy(h);
+	E_s_av[a][h] 	= calcEnergySquared(h);
 	S_av[a][h] 		= calcAverageSpin(h);
 	S_s_av[a][h]	= calcAverageSpinSquared(h);
 
-	E_av[a][c] 		= calcAverageEnergy(c);
-	E_s_av[a][c] 	= calcAverageEnergySquared(c);
+	E_av[a][c] 		= calcEnergy(c);
+	E_s_av[a][c] 	= calcEnergySquared(c);
 	S_av[a][c] 		= calcAverageSpin(c);
 	S_s_av[a][c]	= calcAverageSpinSquared(c);
 
@@ -507,7 +509,7 @@ double calcAverageSpinSquared(int t)
 /*
 *	ENERGY FUNCTIONS
 */
-double calcAverageEnergy(int t)
+double calcEnergy(int t)
 {
 	double E = 0.0;
 	for (int i = 0; i < simulationsPastEquilibrium; ++i)
@@ -517,7 +519,7 @@ double calcAverageEnergy(int t)
 	return E/float(simulationsPastEquilibrium);
 }
 
-double calcAverageEnergySquared(int t)
+double calcEnergySquared(int t)
 {
 	double E = 0.0;
 	for (int i = 0; i < simulationsPastEquilibrium; ++i)

@@ -30,9 +30,9 @@
 **********************************************/
 
 //Increment in beta between simulations
-#define beta_step 0.005
+#define beta_step 0.001
 //Minimum value of beta simulated
-#define beta_min 0.001
+#define beta_min 0.2
 //Maximum value of beta simulated
 #define beta_max 0.6
 //
@@ -49,37 +49,14 @@
 //Maximum value of beta simulated
 #define mu_B_max 1
 //set the fixed value of beta for this simulation
-#define fixedBeta 0.41
+#define fixedBeta 0.01
 
 /*********************************************
 *	DETERMINE WHAT THE PROGRAM OUTPUTS
 **********************************************/
-#define outputE true
-#define outputM false
+#define outputE false
+#define outputM true
 #define outputSHC false
 #define outputMS false
 
 #define outputOneOverBeta false //used to affect the type of plot
-
-
-/*
-while (i <= limit) {
-		//set magnetic field strength
-		if(mu_B_inRangeOfInterest(mu_B) && i !=0.0 )
-		{
-			mu_B = mu_B_min+(i*zoom*mu_B_step);
-			i+=zoom;
-		} else
-		{
-			mu_B = mu_B_min+(i*mu_B_step);
-			i++;
-		}
-		//run simulation under these conditions
-		runSimulation(beta, mu_B, outputFile1, a, 2);
-		//
-		updateProgress(i/(mu_B_max*2/mu_B_step), a);
-	}
-
-
-
-*/
